@@ -10,9 +10,11 @@ import { SpasManager } from 'app/spas/SpasManager';
 // Alma: Create spasManager
 const sm = reactive(new SpasManager());
 SPAS.receive('toRenderer', (event, msg) => sm.do(event, msg));
-provide('spasManager', sm);
 
 export default defineComponent({
-    name: 'App'
+    name: 'App',
+    setup() {
+        provide('spasManager', sm);
+    }
 });
 </script>
