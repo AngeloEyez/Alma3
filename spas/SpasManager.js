@@ -485,6 +485,7 @@ export class SpasManager {
                 }
             });
         });
+
         await this.getWorkItemsFromSpas();
     }
 

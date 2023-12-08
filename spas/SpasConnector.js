@@ -131,12 +131,13 @@ class SpasConnector {
                 break;
             }
             case 'finishWorkItem': {
-                config.url = config.url + '/' + msg.data.id;
+                config.url = config.url + '/' + msg.data.id + '/2';
                 let res = await this._connectSPAS(config);
                 if (res.code != 200) console.log(`${msg.action} FAIL: ${JSON.stringify(res)}`);
                 else {
                     config = new SpasConfig('lastFinishWorkItem');
                     config.data.recieverFunctionBO = res.data.recieverFunctionList;
+                    //config.data.remark = "finished.";
                     config.data.workItemPersonId = msg.data.id;
                     res = await this._connectSPAS(config);
                     if (res.code != 200) console.log(`${msg.action} - lastFinishWorkItem FAIL: ${JSON.stringify(res)}`);
@@ -146,7 +147,8 @@ class SpasConnector {
             }
             case 'approveItems': {
                 result = 0;
-                config = new SpasConfig('getMyReviewWorkItem');
+                config = new SpasConfig('getMyReviewWorkItem'); // approve的 config與action不同, 分兩個動作
+                config.params.workId = this.signIn.workId;
                 let res = await this._connectSPAS(config);
                 if (res.code != 200) console.log(`${msg.action} FAIL: ${JSON.stringify(res)}`);
                 else {

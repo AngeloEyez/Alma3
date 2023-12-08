@@ -16,6 +16,8 @@
                 <button @click="test">test</button>
                 <button @click="sm.getWorkItemsFromSpas()">getWorkItemsFromSpas</button>
                 <button @click="sm.calWorkPlanByWorkItem(8, 3)">calWorkPlanByWorkItem</button>
+                <button @click="sm.approveItems">approveItems</button>
+                <button @click="sm.finishItems">finishItems</button>
             </q-card-section>
         </q-card-section>
         <q-card-section class="row">
