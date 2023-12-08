@@ -336,10 +336,12 @@ export class SpasManager {
             });
         }
 
+        this.calWorkPlanByWorkItem(); // use SPAS 3.0 plan
         this._workPlanUpdateTime = new Date();
         console.log('work plan updated.');
     }
 
+    // SPAS 3.0 plan logic
     async calWorkPlanByWorkItem(workHours = 8, workItemsPerDay = 3) {
         // for (const workItem of this.workItems) {
         //   workItem.targetHours = 0;
@@ -396,7 +398,7 @@ export class SpasManager {
         const iSet = new Set();
         this.workItems = []; // [SPAS3.0]
 
-        await delay(300, 1100);
+        await delay(200, 900);
         let res = await SPAS.do('getMyStartedWorkItems');
         console.log('getMyStartedWorkItems', res);
         res.forEach(async item => {
