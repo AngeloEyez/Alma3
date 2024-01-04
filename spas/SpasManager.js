@@ -98,7 +98,7 @@ export class SpasManager {
         let updateWorkItem = false;
 
         // 特定時間執行 0 -------------------------------------------------------------------- [改成每日下班後10分鐘]
-        let scheduleTime0 = ['17:35', '23:03', '23:40'];
+        let scheduleTime0 = ['19:35', '23:03', '23:40'];
         if (scheduleTime0.includes(date.myGetTime())) {
             console.log('schedule0: Check FINISH and APPROVE');
             await this.getWorkItemsFromSpas();
@@ -107,11 +107,11 @@ export class SpasManager {
             await this.calWorkPlan();
         }
         // 特定時間執行 1 --------------------------------------------------------------------
-        let scheduleTime1 = ['12:03', '17:35', '18:30'];
+        let scheduleTime1 = ['10:00', '12:03', '15:00', '17:10', '18:30'];
         if (scheduleTime1.includes(date.myGetTime())) {
-            console.log('schedule1: refresh workItem and update work plan');
+            console.log('schedule1: refresh workItem.');
             await this.getWorkItemsFromSpas();
-            await this.calWorkPlan();
+            //await this.calWorkPlan();
         }
 
         // 特定時間執行 2 --------------------------------------------------------------------
