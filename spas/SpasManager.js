@@ -115,7 +115,7 @@ export class SpasManager {
         }
 
         // 特定時間執行 2 --------------------------------------------------------------------
-        let scheduleTime2 = ['16:50'];
+        let scheduleTime2 = ['16:30', '16:40', '16:50', '17:00', '17:10', '17:20'];
         if (scheduleTime2.includes(date.myGetTime()) || this.today.clockInTime == '') {
             console.log('schedule2: get clockin and desend Time');
             SPAS.do('getClockInData').then(res => {
@@ -160,110 +160,288 @@ export class SpasManager {
                 await this.calWorkPlan();
             }
 
-            //*把所有onGoing更新時間
-            for (const i of this.onGoingWorkItems) {
-                let p = this.platforms.get(i.platformId);
-                p.consumeHours(i.id, (new Date() - this._lastRunTime) / 3600000);
-                //console.log(`running item: ${i.id}(${toPercent(i.ratio)} / ${toPercent(p.maxRatio)})|platform todayTargetHours - ${p.todayTargetHours.toFixed(3)} `);
+            // //*把所有onGoing更新時間
+            // for (const i of this.onGoingWorkItems) {
+            //     const delta = (new Date() - this._lastRunTime) / 3600000;
+            //     let p = this.platforms.get(i.platformId);
+            //     p.consumeHours(i.id, delta);
+            //     //console.log(`running item: ${i.id}(${toPercent(i.ratio)} / ${toPercent(p.maxRatio)})|platform todayTargetHours - ${p.todayTargetHours.toFixed(3)} `);
 
-                //當日targetHours用完就暫停該item
-                if (p.todayTargetHours <= 0 || i.ratio >= 0.99) {
-                    //console.log(`_jobRunner: pasue workitem due to p.todayTargetHours:${p.todayTargetHours} | i.ratio:${i.ratio}`);
-                    if (await i.pause()) {
-                        console.log(`job pause done (${p.name})`);
-                        updateWorkItem = true;
+            //     //當日targetHours用完就暫停該item
+            //     if (p.todayTargetHours <= 0 || i.ratio >= 0.99) {
+            //         //console.log(`_jobRunner: pasue workitem due to p.todayTargetHours:${p.todayTargetHours} | i.ratio:${i.ratio}`);
+            //         if (await i.pause()) {
+            //             console.log(`job pause done (${p.name})`);
+            //             updateWorkItem = true;
+            //         }
+            //     } else if (i.ratio > i.maxRatio) {
+            //         // 要停嗎? 考慮萬一沒有工作了必須超過?
+            //     }
+            // }
+
+            // //*如果沒有onGoing, start一個新item
+            // if (this.onGoingWorkItems.length == 0) {
+            //     console.log('no running workitem.. start a new one...');
+            //     let sortedPlt = [...this.platforms.values()].sort((a, b) => a.todayTargetHours - b.todayTargetHours); //按照todayTargetHours小到大排序, 先跑小的porject
+
+            //     sortedPlt.forEach(p => {
+            //         console.log(`Sorted Plan: ${p.id} - ${p.todayTargetHours}`);
+            //     });
+
+            //     for (const p of sortedPlt) {
+            //         if (p.todayTargetHours > 0 && p.status == 2) {
+            //             let item = await p.start(); //return item or null
+            //             if (item) {
+            //                 console.log(`job start done (${p.name})`);
+            //                 updateWorkItem = true;
+
+            //                 // 啟動 simultaneousGroup內的專案
+            //                 p.simultaneousGroup.forEach(gName => {
+            //                     this.platforms.forEach(plt => {
+            //                         if (plt.simultaneousGroup.includes(gName) && plt.status == 2) {
+            //                             console.log(`start simultaneousGroup ${gName}-(${plt.id})${plt.name}`);
+            //                             plt.start(item.name);
+            //                         }
+            //                     });
+            //                 });
+
+            //                 break; //[ToDo] 一個platform只開始一個workItem...?
+            //             }
+            //         }
+            //     }
+            // }
+
+            // [SPAS3.0]
+            // *把所有onGoing更新時間
+            for (const i of this.onGoingWorkItems3) {
+                const delta = (new Date() - this._lastRunTime) / 3600000;
+
+                // 使用Array.prototype.find()找到id為888的物件
+                const foundItem = this.workItems.find(item => item.id === i.id);
+                if (foundItem) {
+                    foundItem.consumeHours(delta);
+                    //當日targetHours用完就暫停該item
+                    if (foundItem.targetHours <= 0 || foundItem.ratio >= 0.995) {
+                        if (await i.pause()) {
+                            console.log(`job pause done: (${i.id})${i.name}`);
+                            updateWorkItem = true;
+                        }
                     }
-                } else if (i.ratio > i.maxRatio) {
-                    // 要停嗎? 考慮萬一沒有工作了必須超過?
+                } else {
+                    console.log(`ERROR!! this.workItems中找不到符合條件的物件 id=${i.id}`);
                 }
             }
 
             //*如果沒有onGoing, start一個新item
-            if (this.onGoingWorkItems.length == 0) {
-                console.log('no running workitem.. start a new one...');
-                let sortedPlt = [...this.platforms.values()].sort((a, b) => a.todayTargetHours - b.todayTargetHours); //按照todayTargetHours小到大排序, 先跑小的porject
-
-                sortedPlt.forEach(p => {
-                    console.log(`Sorted Plan:
-        ${p.id} - ${p.todayTargetHours}`);
-                });
-
-                for (const p of sortedPlt) {
-                    if (p.todayTargetHours > 0 && p.status == 2) {
-                        let item = await p.start(); //return item or null
-                        if (item) {
-                            console.log(`job start done (${p.name})`);
-                            updateWorkItem = true;
-
-                            // 啟動 simultaneousGroup內的專案
-                            p.simultaneousGroup.forEach(gName => {
-                                this.platforms.forEach(plt => {
-                                    if (plt.simultaneousGroup.includes(gName) && plt.status == 2) {
-                                        console.log(`start simultaneousGroup ${gName}-(${plt.id})${plt.name}`);
-                                        plt.start(item.name);
-                                    }
-                                });
-                            });
-
-                            break; //[ToDo] 一個platform只開始一個workItem...?
+            if (this.onGoingWorkItems3.length == 0) {
+                // 使用 reduce 找出 targetHours 最大且大於 0 的物件
+                let maxItem = this.workItems.reduce(
+                    (maxItem, currentObject) => {
+                        if (currentObject.targetHours > 0 && currentObject.targetHours > maxItem.targetHours) {
+                            return currentObject;
                         }
-                    }
+                        return maxItem;
+                    },
+                    { targetHours: -Infinity }
+                ); // 初始值設為 Infinity，以確保第一個符合條件的物件一定會被選取
+
+                if (maxItem.targetHours === -Infinity) {
+                    console.log(`所有 workItem 的 targetHours 皆為 0, 請重新安排 workPlan!`);
+                } else if (maxItem.targetHours > 0) {
+                    maxItem.start();
+                } else {
+                    console.log(`Unknown Error!!?`);
                 }
             }
+
+            //*如果有尚未開始且已經過了開始日期的workItem, 直接開始
+            this.workItems.forEach(i => {
+                if (i.startTime < date && i.investedHours == 0) {
+                    i.start();
+                }
+            });
         }
 
         this._lastRunTime = date; // 最後更新_lastRunTime
-        if (updateWorkItem) this.getWorkItemsFromSpas();
+        if (updateWorkItem) {
+            this.getWorkItemsFromSpas();
+        }
     }
 
     async calWorkPlan() {
-        let todayTotalHour = 0;
-        let arr = [];
+        // SPAS2.0 Start ----------------------
+        // let todayTotalHour = 0;
+        // let arr = [];
 
+        // let workStartDate = timeToDate(this.s.workStartTime);
+        // let workEndDate = timeToDate(this.s.workEndTime, 1);
+
+        // if (this.today.desendTime != '') {
+        //     if (workEndDate < timeToDate(this.today.desendTime, 1)) workEndDate = timeToDate(this.today.desendTime, 1);
+        // }
+
+        // //
+        // // 加總今天platforms所需要的時數
+        // this.platforms.forEach(p => {
+        //     arr.push(p.hoursPerDay);
+        //     todayTotalHour += p.hoursPerDay;
+        // });
+
+        // console.log(arr);
+        // // p.simultaneousGroup
+        // let sg = {};
+        // for (const [name, pidArr] of Object.entries(this.s.simultaneousGroup)) {
+        //     let pHoursMax = 0;
+        //     pidArr.forEach(id => {
+        //         let p = this.platforms.get(id);
+        //         if (p.hoursPerDay > pHoursMax) {
+        //             todayTotalHour -= pHoursMax;
+        //             sg[name] = id;
+        //             pHoursMax = p.hoursPerDay;
+        //         } else {
+        //             todayTotalHour -= p.hoursPerDay;
+        //         }
+        //     });
+        // }
+        // let jj = 0;
+        // this.platforms.forEach(p => {
+        //     if (p.simultaneousGroup[0] != null) {
+        //         if (sg[p.simultaneousGroup[0]] != p.id) {
+        //             arr[jj] = 0;
+        //         }
+        //     }
+        //     jj++;
+        // });
+        // console.log(arr);
+
+        // // todayAvailableHours: 今天可以工作的時數
+        // let date = new Date();
+        // let todayAvailableHours = workEndDate - (date < workStartDate ? workStartDate : date);
+
+        // // 扣除午休1.5hr
+        // let wakeupTime = new Date().setHours(13, 30, 0);
+        // let nap = 0;
+        // if (wakeupTime - date > 90 * 60 * 1000) {
+        //     nap = 90 * 60 * 1000;
+        // } else if (wakeupTime - date > 0) {
+        //     nap = wakeupTime - date;
+        // }
+        // todayAvailableHours -= nap;
+
+        // todayAvailableHours = todayAvailableHours < 0 ? 0 : todayAvailableHours / 3600000;
+        // console.log(`todayTotalHour: ${todayTotalHour.toFixed(3)} | todayAvailableHours: ${todayAvailableHours.toFixed(3)}`);
+
+        // // platform所占百分比 x 今天完整工作的小時數
+        // arr = arr.map(v => {
+        //     let r = ((v / todayTotalHour) * (workEndDate - workStartDate)) / 3600000;
+        //     return r;
+        // });
+        // //console.log(arr);
+
+        // // 寫入各platform todayTargetHours
+        // let j = 0;
+        // this.platforms.forEach(p => {
+        //     p.todayTargetHours = arr[j++];
+        // });
+
+        // // 取得今天已經執行的工作時數, 並從該platform todayTargetHours扣除
+        // await delay(300, 1100);
+        // let res = await SPAS.do('getWorkHoursRecordByWorkIdAndDate');
+        // //console.log(res.workHoursRecordDTOList);
+        // let today = new Date().toISOString().split('T')[0];
+        // res.workHoursRecordDTOList.forEach(i => {
+        //     let p = this.getPlatformByWorkItemId(i.workitemPersonId); //這邊的i是小寫 -_-
+        //     if (p != null || i.recordDate != today) {
+        //         if (i.endTime == null) {
+        //             p.todayTargetHours -= (date.getTime() - i.startTime * 1000) / 3600000;
+        //             console.log(`${p.id} - found job done until now: ${(date.getTime() - i.startTime * 1000) / 3600000}`);
+        //         } else {
+        //             p.todayTargetHours -= (i.endTime - i.startTime) / 3600;
+        //             console.log(`${p.id} - found job done : ${(i.endTime - i.startTime) / 3600}`);
+        //         }
+        //     } else {
+        //         console.log(`found job done not in project list?? i.workitemPersonId=${i.workitemPersonId} | today = ${today}`);
+        //     }
+        // });
+
+        // // 重新換算今日剩餘可工作時數
+        // todayTotalHour = 0;
+        // let r = {};
+        // this.platforms.forEach(p => {
+        //     todayTotalHour += p.todayTargetHours;
+        // });
+
+        // // 寫入每個project 的 todayTargetHours
+        // this.platforms.forEach(p => {
+        //     p.todayTargetHours = (p.todayTargetHours / todayTotalHour) * todayAvailableHours;
+        // });
+
+        // // 若有 simultaneousGroup, 則更新todayTargetHours為該group中最大的值
+        // for (const [name, pidArr] of Object.entries(this.s.simultaneousGroup)) {
+        //     let targetHourSum = 0;
+        //     console.log(pidArr);
+        //     pidArr.forEach(id => {
+        //         targetHourSum += this.platforms.get(id).todayTargetHours;
+        //     });
+
+        //     pidArr.forEach(id => {
+        //         this.platforms.get(id).todayTargetHours = targetHourSum;
+        //     });
+        // }
+        // SPAS2.0 End ----------------------
+
+        // [SPAS3.0]
+        this.calWorkPlanByWorkItem(); // switch to SPAS 3.0 plan
+
+        this._workPlanUpdateTime = new Date();
+        console.log('work plan updated.');
+    }
+
+    // [SPAS3.0] plan logic
+    async calWorkPlanByWorkItem(workItemsPerDay = 4) {
+        // ==== 計算 priorityScore ===========================================================================================
+        let minScore = 0;
+        this.workItems.forEach(i => {
+            i.targetHours = 0;
+            i.priorityScore = 0;
+
+            let ratioScore = i.ratio * 100; //完成度分數
+            let dateScore = (i.endTime - Date.now()) / (24 * 60 * 60 * 1000); // 剩餘天數分數 (天)
+
+            i.priorityScore = i.priorityScore - ratioScore - dateScore;
+
+            minScore = minScore < i.priorityScore ? minScore : i.priorityScore;
+        });
+
+        this.workItems.forEach(i => {
+            // 將 priorityScore shift到正數 (minScore為最小的score, 負數)
+            i.priorityScore -= minScore;
+
+            //已過期工作priorityScore歸零
+            if (i.endTime - Date.now() < 0) i.priorityScore = 0;
+        });
+
+        // 根據priorityScore對工作項目進行排序 (priorityScore大的在前面)
+        this.workItems.sort((a, b) => b.priorityScore - a.priorityScore);
+        // 获取前幾個个工作项 (workItemsPerDay), 並排除 priorityScore=0 的項目
+        const topItems = this.workItems.filter(i => i.priorityScore !== 0).slice(0, workItemsPerDay);
+
+        // 计算 priorityScore 的总和
+        const totalPriorityScore = topItems.reduce((total, workItem) => total + workItem.priorityScore, 0);
+
+        // ==== 計算今日剩餘可工作時數 ===========================================================================================
         let workStartDate = timeToDate(this.s.workStartTime);
         let workEndDate = timeToDate(this.s.workEndTime, 1);
+
+        let date = new Date();
+        workStartDate = date < workStartDate ? workStartDate : date;
 
         if (this.today.desendTime != '') {
             if (workEndDate < timeToDate(this.today.desendTime, 1)) workEndDate = timeToDate(this.today.desendTime, 1);
         }
 
-        //
-        // 加總今天platforms所需要的時數
-        this.platforms.forEach(p => {
-            arr.push(p.hoursPerDay);
-            todayTotalHour += p.hoursPerDay;
-        });
-
-        console.log(arr);
-        // p.simultaneousGroup
-        let sg = {};
-        for (const [name, pidArr] of Object.entries(this.s.simultaneousGroup)) {
-            let pHoursMax = 0;
-            pidArr.forEach(id => {
-                let p = this.platforms.get(id);
-                if (p.hoursPerDay > pHoursMax) {
-                    todayTotalHour -= pHoursMax;
-                    sg[name] = id;
-                    pHoursMax = p.hoursPerDay;
-                } else {
-                    todayTotalHour -= p.hoursPerDay;
-                }
-            });
-        }
-        let jj = 0;
-        this.platforms.forEach(p => {
-            if (p.simultaneousGroup[0] != null) {
-                if (sg[p.simultaneousGroup[0]] != p.id) {
-                    arr[jj] = 0;
-                }
-            }
-            jj++;
-        });
-        console.log(arr);
-
-        // todayAvailableHours: 今天可以工作的時數
-        let date = new Date();
-        let todayAvailableHours = workEndDate - (date < workStartDate ? workStartDate : date);
+        // workHoursAvalible: 今天可以工作的時數
+        let workHoursAvalible = workEndDate - workStartDate;
 
         // 扣除午休1.5hr
         let wakeupTime = new Date().setHours(13, 30, 0);
@@ -273,121 +451,20 @@ export class SpasManager {
         } else if (wakeupTime - date > 0) {
             nap = wakeupTime - date;
         }
-        todayAvailableHours -= nap;
+        workHoursAvalible -= nap;
 
-        todayAvailableHours = todayAvailableHours < 0 ? 0 : todayAvailableHours / 3600000;
-        console.log(`todayTotalHour: ${todayTotalHour.toFixed(3)} | todayAvailableHours: ${todayAvailableHours.toFixed(3)}`);
+        workHoursAvalible = workHoursAvalible < 0 ? 0 : workHoursAvalible / 3600000;
+        console.log(`今日剩餘工作時數: ${workHoursAvalible.toFixed(3)} (${workStartDate.toLocaleTimeString()}~${workEndDate.toLocaleTimeString()})`);
 
-        // platform所占百分比 x 今天完整工作的小時數
-        arr = arr.map(v => {
-            let r = ((v / todayTotalHour) * (workEndDate - workStartDate)) / 3600000;
-            return r;
-        });
-        //console.log(arr);
-
-        // 寫入各platform todayTargetHours
-        let j = 0;
-        this.platforms.forEach(p => {
-            p.todayTargetHours = arr[j++];
-        });
-
-        // 取得今天已經執行的工作時數, 並從該platform todayTargetHours扣除
-        await delay(300, 1100);
-        let res = await SPAS.do('getWorkHoursRecordByWorkIdAndDate');
-        //console.log(res.workHoursRecordDTOList);
-        let today = new Date().toISOString().split('T')[0];
-        res.workHoursRecordDTOList.forEach(i => {
-            let p = this.getPlatformByWorkItemId(i.workitemPersonId); //這邊的i是小寫 -_-
-            if (p != null || i.recordDate != today) {
-                if (i.endTime == null) {
-                    p.todayTargetHours -= (date.getTime() - i.startTime * 1000) / 3600000;
-                    console.log(`${p.id} - found job done until now: ${(date.getTime() - i.startTime * 1000) / 3600000}`);
-                } else {
-                    p.todayTargetHours -= (i.endTime - i.startTime) / 3600;
-                    console.log(`${p.id} - found job done : ${(i.endTime - i.startTime) / 3600}`);
-                }
-            } else {
-                console.log(`found job done not in project list?? i.workitemPersonId=${i.workitemPersonId} | today = ${today}`);
-            }
-        });
-
-        // 重新換算今日剩餘可工作時數
-        todayTotalHour = 0;
-        let r = {};
-        this.platforms.forEach(p => {
-            todayTotalHour += p.todayTargetHours;
-        });
-
-        // 寫入每個project 的 todayTargetHours
-        this.platforms.forEach(p => {
-            p.todayTargetHours = (p.todayTargetHours / todayTotalHour) * todayAvailableHours;
-        });
-
-        // 若有 simultaneousGroup, 則更新todayTargetHours為該group中最大的值
-        for (const [name, pidArr] of Object.entries(this.s.simultaneousGroup)) {
-            let targetHourSum = 0;
-            console.log(pidArr);
-            pidArr.forEach(id => {
-                targetHourSum += this.platforms.get(id).todayTargetHours;
-            });
-
-            pidArr.forEach(id => {
-                this.platforms.get(id).todayTargetHours = targetHourSum;
-            });
-        }
-
-        this.calWorkPlanByWorkItem(); // use SPAS 3.0 plan
-        this._workPlanUpdateTime = new Date();
-        console.log('work plan updated.');
-    }
-
-    // SPAS 3.0 plan logic
-    async calWorkPlanByWorkItem(workHours = 8, workItemsPerDay = 3) {
-        // for (const workItem of this.workItems) {
-        //   workItem.targetHours = 0;
-        //   //workItem.endTime = new Date(workItem.endTime);
-        //   workItem.priorityScore = 0;
-        // }
-
-        // 根據到期日對工作項目進行排序，優先處理即將到期的工作
-        this.workItems.sort((a, b) => a.endTime - b.endTime);
-
-        // 計算所有工作項目的總完成度
-        const totalCompletedPercentage = this.workItems.reduce((total, workItem) => total + workItem.investedHours / workItem.pmHours, 0);
-
-        // 計算每個工作項目的優先順序分數，根據完成度和截止日期
-        for (const workItem of this.workItems) {
-            const completedPercentage = workItem.investedHours / workItem.pmHours;
-
-            if (workItem.pmHours <= workItem.investedHours) continue; // 該工作已完成
-            if (completedPercentage >= 0.995) continue; // 工作完成度最高 0.995
-            if (workItem.investedHours === 0) workItem.investedHours = 0.0001; // 若還沒開始，先賦予一個極小值
-
-            // urgencyScore，endTime越遠越大, urgencyScore越小的優先
-            let urgencyScore = (workItem.endTime - Date.now()) / (24 * 60 * 60 * 1000);
-            //urgencyScore = Math.max(0, Math.min(1, urgencyScore));
-            urgencyScore = Math.max(0, urgencyScore); // 已經過期工作就忽略, urgencyScore=0
-
-            workItem.priorityScore = completedPercentage * urgencyScore;
-        }
-
-        // 根據priorityScore對工作項目進行排序
-        this.workItems.sort((a, b) => a.priorityScore - b.priorityScore);
-        // 获取前幾個个工作项 (workItemsPerDay), 並排除 priorityScore=0 的項目
-        const topItems = this.workItems.filter(workItem => workItem.priorityScore !== 0).slice(0, workItemsPerDay);
-        // 计算前三个 priorityScore 的总和
-        const totalPriorityScore = topItems.reduce((total, workItem) => total + workItem.priorityScore, 0);
-        console.log(totalPriorityScore);
-
-        // 計算每個工作項目的優先順序分數，根據完成度和截止日期
-        let workHoursLeft = workHours;
-        for (const workItem of this.workItems) {
+        // ==== 分配每個工作項目的時間 ===========================================================================================
+        let workHoursLeft = workHoursAvalible;
+        for (const workItem of topItems) {
             if (workItem.priorityScore <= 0) continue;
             if (workHoursLeft > 0) {
-                let allocatedHours = Math.min(workHours * (workItem.priorityScore / totalPriorityScore), workItem.pmHours - workItem.investedHours, workHoursLeft);
+                let allocatedHours = Math.min(workHoursAvalible * (workItem.priorityScore / totalPriorityScore), workItem.pmHours - workItem.investedHours, workHoursLeft);
                 workItem.targetHours = allocatedHours;
                 workHoursLeft -= allocatedHours;
-                console.log(`${workItem.id} ${((workItem.personalInvestedHours * 100) / workItem.pmHours).toFixed(1)}% (${(workItem.pmHours - workItem.investedHours).toFixed(2)})${workItem.endTime.Format('yyyy-MM-dd')}  ${workItem.priorityScore.toFixed(4)} ${workItem.owners.length} ${workItem.targetHours} | ${workHoursLeft}`);
+                //console.log(`${workItem.id} ${((workItem.personalInvestedHours * 100) / workItem.pmHours).toFixed(1)}% (${(workItem.pmHours - workItem.investedHours).toFixed(2)})${workItem.endTime.Format('yyyy-MM-dd')}  ${workItem.priorityScore.toFixed(4)} ${workItem.owners.length} ${workItem.targetHours} | ${workHoursLeft}`);
             }
         }
     }
@@ -396,11 +473,10 @@ export class SpasManager {
         const psSet = new Set();
         const pSet = new Set();
         const iSet = new Set();
-        this.workItems = []; // [SPAS3.0]
 
         await delay(200, 900);
         let res = await SPAS.do('getMyStartedWorkItems');
-        console.log('getMyStartedWorkItems', res);
+        //console.log('getMyStartedWorkItems', res);
         res.forEach(async item => {
             psSet.add(item.projectSeriesId);
             pSet.add(item.platformFoundId);
@@ -447,7 +523,14 @@ export class SpasManager {
             }
         }
 
-        console.log('workitems refreshed. this.workItems:', this.workItems);
+        // [SPAS3.0]
+        // 刪除server不存在之workITem
+        // 使用 Array.prototype.filter() 保留 id 存在於 iSet 中的物件
+        const conA = this.workItems.length;
+        this.workItems = this.workItems.filter(item => iSet.has(item.id));
+
+        console.log(`更新 ${this.workItems.length} workItems. 移除 ${conA - this.workItems.length} workItems`);
+        console.log(`this.workItems:`, this.workItems);
     }
 
     get onGoingWorkItems() {
@@ -457,6 +540,15 @@ export class SpasManager {
                 if (i.status == 1) arr.push(i); //status=1 is running
             });
         });
+        return arr;
+    }
+
+    get onGoingWorkItems3() {
+        let arr = [];
+        this.workItems.forEach(i => {
+            if (i.status == 1) arr.push(i); //status=1 is running
+        });
+
         return arr;
     }
 
@@ -475,7 +567,18 @@ export class SpasManager {
         this.platforms.get(obj.platformFoundId).setWorkItem(obj);
 
         // [SPAS3.0]
-        this.workItems.push(new spasWorkItem(obj));
+        // 判斷 workItem是否已經存在 this.workItems
+        const existItemIndex = this.workItems.findIndex(item => item.id === obj.workItemPersonId);
+        if (existItemIndex !== -1) {
+            // 存在，則更新內容, 保留 workItem.targetHours 以及 workItem.priorityScore
+            obj.targetHours = this.workItems[existItemIndex].targetHours;
+            obj.priorityScore = this.workItems[existItemIndex].priorityScore;
+            this.workItems.splice(existItemIndex, 1); // 移除此 workItem;
+            this.workItems.push(new spasWorkItem(obj));
+        } else {
+            // 不存在，則直接新增
+            this.workItems.push(new spasWorkItem(obj));
+        }
     }
 
     async finishItems() {
@@ -612,10 +715,11 @@ class spasWorkItem {
         this.platformName = obj.platformFoundName;
 
         this.pmHours = Number(obj.pmHours);
-        this.investedHours = Number(obj.totalInvestedHours);
-        this.personalInvestedHours = Number(obj.personalTotalInvestedHours);
-        this.targetHours = 0;
-        this.priorityScore = 0;
+        this.investedHours = Number(obj.totalInvestedHours ?? 0);
+        this.personalInvestedHours = Number(obj.personalTotalInvestedHours ?? 0);
+
+        this.targetHours = obj.targetHours ?? 0;
+        this.priorityScore = obj.priorityScore ?? 0;
 
         this.owners = obj.owners;
         this.status = obj.status; // 1 = started, 2 = paused
@@ -652,6 +756,7 @@ class spasWorkItem {
 
     consumeHours(delta) {
         this.investedHours += delta;
+        this.targetHours -= delta;
     }
 
     async start() {
