@@ -173,7 +173,7 @@ export class SpasConfig {
             default: {
                 this.valid = false;
                 this.msg = `SpasConfig: Can't get config: ${cfg}`;
-                console.log(this.msg);
+                if (cfg != 'approveItems') console.log(this.msg);
                 break;
             }
         }

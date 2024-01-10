@@ -72,19 +72,19 @@ export class SpasManager {
             });
         }
 
-        await this.calWorkPlan(); // 計算platforms todayTargetHours
-
-        this.jobRunnerID = setInterval(this._jobRunner.bind(this), 60000);
+        //await this.calWorkPlan(); // 計算platforms todayTargetHours
 
         console.log('start: get clockin and desend Time');
         SPAS.do('getClockInData').then(res => {
             this.today.clockInTime = res.inTime;
             let t = res.dsendTime.split(' ')[1].split(':'); //dsendTime: "2022-10-03 17:38:00"
             this.today.desendTime = t[0] + ':' + t[1]; // "17:38"
+            console.log(`更更新上班時間: ${this.today.clockInTime},工作截止時間: ${this.today.desendTime}`);
             this.calWorkPlan();
             this._jobRunner();
         });
 
+        this.jobRunnerID = setInterval(this._jobRunner.bind(this), 60000);
         console.log('spasManager Started');
     }
 
@@ -98,13 +98,13 @@ export class SpasManager {
         let updateWorkItem = false;
 
         // 特定時間執行 0 -------------------------------------------------------------------- [改成每日下班後10分鐘]
-        let scheduleTime0 = ['19:35', '23:03', '23:40'];
+        let scheduleTime0 = ['23:05'];
         if (scheduleTime0.includes(date.myGetTime())) {
             console.log('schedule0: Check FINISH and APPROVE');
             await this.getWorkItemsFromSpas();
             await this.finishItems();
             this.approveItems();
-            await this.calWorkPlan();
+            this.calWorkPlan();
         }
         // 特定時間執行 1 --------------------------------------------------------------------
         let scheduleTime1 = ['10:00', '12:03', '15:00', '17:10', '18:30'];
@@ -115,13 +115,14 @@ export class SpasManager {
         }
 
         // 特定時間執行 2 --------------------------------------------------------------------
-        let scheduleTime2 = ['16:30', '16:40', '16:50', '17:00', '17:10', '17:20'];
-        if (scheduleTime2.includes(date.myGetTime()) || this.today.clockInTime == '') {
+        let scheduleTime2 = ['16:50', '17:00', '17:10', '17:20'];
+        if (scheduleTime2.includes(date.myGetTime())) {
             console.log('schedule2: get clockin and desend Time');
             SPAS.do('getClockInData').then(res => {
                 this.today.clockInTime = res.inTime;
                 let t = res.dsendTime.split(' ')[1].split(':'); //dsendTime: "2022-10-03 17:38:00"
                 this.today.desendTime = t[0] + ':' + t[1]; // "17:38"
+                console.log(`更更新上班時間: ${this.today.clockInTime},工作截止時間: ${this.today.desendTime}`);
                 this.calWorkPlan();
             });
         }
@@ -430,13 +431,17 @@ export class SpasManager {
         const totalPriorityScore = topItems.reduce((total, workItem) => total + workItem.priorityScore, 0);
 
         // ==== 計算今日剩餘可工作時數 ===========================================================================================
-        let workStartDate = timeToDate(this.s.workStartTime);
-        let workEndDate = timeToDate(this.s.workEndTime, 1);
+        if (!this.s.workStartTime) this.s = await SPAS.getAllSettings(); // 預防動態更新時 this.s內容丟失
 
         let date = new Date();
+        //let schedule2 = timeToDate('16:50');
+        let schedule2 = timeToDate(this.s.workEndTime, 1);
+
+        let workStartDate = timeToDate(this.s.workStartTime);
         workStartDate = date < workStartDate ? workStartDate : date;
 
-        if (this.today.desendTime != '') {
+        let workEndDate = date >= schedule2 ? timeToDate(this.s.workEndTime, 1) : schedule2;
+        if (this.today.clockInTime != null) {
             if (workEndDate < timeToDate(this.today.desendTime, 1)) workEndDate = timeToDate(this.today.desendTime, 1);
         }
 
@@ -529,8 +534,8 @@ export class SpasManager {
         const conA = this.workItems.length;
         this.workItems = this.workItems.filter(item => iSet.has(item.id));
 
-        console.log(`更新 ${this.workItems.length} workItems. 移除 ${conA - this.workItems.length} workItems`);
-        console.log(`this.workItems:`, this.workItems);
+        //console.log(`更新 ${this.workItems.length} workItems. 移除 ${conA - this.workItems.length} workItems`);
+        //console.log(`this.workItems:`, this.workItems);
     }
 
     get onGoingWorkItems() {
@@ -582,16 +587,26 @@ export class SpasManager {
     }
 
     async finishItems() {
-        this.platforms.forEach(p => {
-            p.workItems.forEach(async i => {
-                if (i.endTime < new Date()) {
-                    i.finish();
-                    await delay();
-                }
-            });
+        // this.platforms.forEach(p => {
+        //     p.workItems.forEach(async i => {
+        //         if (i.endTime < new Date()) {
+        //             i.finish();
+        //             await delay();
+        //         }
+        //     });
+        // });
+
+        let now = new Date();
+
+        this.workItems.forEach(async i => {
+            // workItem.endTime訂在 22:59:59
+            if (i.endTime < now) {
+                i.finish();
+                await delay();
+            }
         });
 
-        await this.getWorkItemsFromSpas();
+        this.getWorkItemsFromSpas();
     }
 
     approveItems() {
