@@ -30,6 +30,8 @@ export class SpasManager {
             isloading: false,
             showDialog: false
         };
+
+        this.workItemMaxRatio = 0.995;
     }
 
     async do(event, msg) {
@@ -77,11 +79,15 @@ export class SpasManager {
         console.log('start: get clockin and desend Time');
         SPAS.do('getClockInData').then(res => {
             this.today.clockInTime = res.inTime;
-            let t = res.dsendTime.split(' ')[1].split(':'); //dsendTime: "2022-10-03 17:38:00"
-            this.today.desendTime = t[0] + ':' + t[1]; // "17:38"
-            console.log(`更更新上班時間: ${this.today.clockInTime},工作截止時間: ${this.today.desendTime}`);
-            this.calWorkPlan();
-            this._jobRunner();
+            try {
+                let t = res.dsendTime.split(' ')[1].split(':'); //dsendTime: "2022-10-03 17:38:00"
+                this.today.desendTime = t[0] + ':' + t[1]; // "17:38"
+                console.log(`更更新上班時間: ${this.today.clockInTime},工作截止時間: ${this.today.desendTime}`);
+                this.calWorkPlan();
+                this._jobRunner();
+            } catch (e) {
+                console.log(`getClockInData Fail: ${e}, res:`, res);
+            }
         });
 
         this.jobRunnerID = setInterval(this._jobRunner.bind(this), 60000);
@@ -107,7 +113,7 @@ export class SpasManager {
             this.calWorkPlan();
         }
         // 特定時間執行 1 --------------------------------------------------------------------
-        let scheduleTime1 = ['10:00', '12:03', '15:00', '17:10', '18:30'];
+        let scheduleTime1 = ['10:00', '12:03', '13:30', '13:32', '15:00', '17:30', '18:30'];
         if (scheduleTime1.includes(date.myGetTime())) {
             console.log('schedule1: refresh workItem.');
             await this.getWorkItemsFromSpas();
@@ -115,16 +121,22 @@ export class SpasManager {
         }
 
         // 特定時間執行 2 --------------------------------------------------------------------
-        let scheduleTime2 = ['16:50', '17:00', '17:10', '17:20'];
+        let scheduleTime2 = ['16:40', '16:50', '17:00', '17:10', '17:20', '17:30'];
         if (scheduleTime2.includes(date.myGetTime())) {
-            console.log('schedule2: get clockin and desend Time');
-            SPAS.do('getClockInData').then(res => {
-                this.today.clockInTime = res.inTime;
-                let t = res.dsendTime.split(' ')[1].split(':'); //dsendTime: "2022-10-03 17:38:00"
-                this.today.desendTime = t[0] + ':' + t[1]; // "17:38"
-                console.log(`更更新上班時間: ${this.today.clockInTime},工作截止時間: ${this.today.desendTime}`);
-                this.calWorkPlan();
-            });
+            console.log(`schedule2: get clockin and desend Time. (clockInTime:${this.today.clockInTime})`);
+            if (this.today.clockInTime != null) {
+                SPAS.do('getClockInData').then(res => {
+                    this.today.clockInTime = res.inTime;
+                    try {
+                        let t = res.dsendTime.split(' ')[1].split(':'); //dsendTime: "2022-10-03 17:38:00"
+                        this.today.desendTime = t[0] + ':' + t[1]; // "17:38"
+                        console.log(`更更新上班時間: ${this.today.clockInTime},工作截止時間: ${this.today.desendTime}`);
+                        this.calWorkPlan();
+                    } catch (e) {
+                        console.log(`getClockInData Fail: ${e}, res:`, res);
+                    }
+                });
+            }
         }
 
         // 特定時間執行 3 A new Day --------------------------------------------------------------------
@@ -145,13 +157,14 @@ export class SpasManager {
         if (this.today.desendTime != '') {
             if (endTime < timeToDate(this.today.desendTime, 1)) endTime = timeToDate(this.today.desendTime, 1);
         }
-        //console.log(`endTime:${endTime} | desendTime:${this.today.desendTime}`);
+        console.log(`endTime:${endTime} | desendTime:${this.today.desendTime}`);
         if (date < timeToDate(this.s.workStartTime, -1) || date > endTime || (date > new Date().setHours(12, 1, 0) && date < new Date().setHours(13, 29, 0)) || date.getDay() == 0 || date.getDay() == 6) {
             //pause all ongoingWorkItems
-            //console.log("_jobRunner: not in working time, pause all workitems.");
+            //console.log(`_jobRunner: not in working time, pause all workitems. ${this.s.workStartTime}~${endTime}`);
             for (const i of this.onGoingWorkItems) {
                 i.pause();
             }
+            this.getWorkItemsFromSpas();
             // 在工作時間內 --------------------------------------------------------------------
         } else {
             // 更新 workPlan (每日剛開始工作時)
@@ -222,7 +235,7 @@ export class SpasManager {
                 if (foundItem) {
                     foundItem.consumeHours(delta);
                     //當日targetHours用完就暫停該item
-                    if (foundItem.targetHours <= 0 || foundItem.ratio >= 0.995) {
+                    if (foundItem.targetHours <= 0 || foundItem.ratio >= this.workItemMaxRatio) {
                         if (await i.pause()) {
                             console.log(`job pause done: (${i.id})${i.name}`);
                             updateWorkItem = true;
@@ -231,6 +244,19 @@ export class SpasManager {
                 } else {
                     console.log(`ERROR!! this.workItems中找不到符合條件的物件 id=${i.id}`);
                 }
+            }
+            console.log(`目前有 ${this.onGoingWorkItems3.length} 個工作項同時進行`);
+            //* 一次僅進行一個工作，停止多餘的
+            if (this.onGoingWorkItems3.length > 1) {
+                console.log(`目前有 ${this.onGoingWorkItems3.length} 個工作項同時進行,開始暫停多餘項目`);
+                const OGworkItems = this.onGoingWorkItems3;
+
+                for (const i of OGworkItems) {
+                    i.pause();
+                }
+                await this.getWorkItemsFromSpas();
+                await this.calWorkPlan();
+                console.log(`目前有 ${this.onGoingWorkItems3.length} 個工作項同時進行`);
             }
 
             //*如果沒有onGoing, start一個新item
@@ -400,36 +426,6 @@ export class SpasManager {
 
     // [SPAS3.0] plan logic
     async calWorkPlanByWorkItem(workItemsPerDay = 4) {
-        // ==== 計算 priorityScore ===========================================================================================
-        let minScore = 0;
-        this.workItems.forEach(i => {
-            i.targetHours = 0;
-            i.priorityScore = 0;
-
-            let ratioScore = i.ratio * 100; //完成度分數
-            let dateScore = (i.endTime - Date.now()) / (24 * 60 * 60 * 1000); // 剩餘天數分數 (天)
-
-            i.priorityScore = i.priorityScore - ratioScore - dateScore;
-
-            minScore = minScore < i.priorityScore ? minScore : i.priorityScore;
-        });
-
-        this.workItems.forEach(i => {
-            // 將 priorityScore shift到正數 (minScore為最小的score, 負數)
-            i.priorityScore -= minScore;
-
-            //已過期工作priorityScore歸零
-            if (i.endTime - Date.now() < 0) i.priorityScore = 0;
-        });
-
-        // 根據priorityScore對工作項目進行排序 (priorityScore大的在前面)
-        this.workItems.sort((a, b) => b.priorityScore - a.priorityScore);
-        // 获取前幾個个工作项 (workItemsPerDay), 並排除 priorityScore=0 的項目
-        const topItems = this.workItems.filter(i => i.priorityScore !== 0).slice(0, workItemsPerDay);
-
-        // 计算 priorityScore 的总和
-        const totalPriorityScore = topItems.reduce((total, workItem) => total + workItem.priorityScore, 0);
-
         // ==== 計算今日剩餘可工作時數 ===========================================================================================
         if (!this.s.workStartTime) this.s = await SPAS.getAllSettings(); // 預防動態更新時 this.s內容丟失
 
@@ -460,6 +456,42 @@ export class SpasManager {
 
         workHoursAvalible = workHoursAvalible < 0 ? 0 : workHoursAvalible / 3600000;
         console.log(`今日剩餘工作時數: ${workHoursAvalible.toFixed(3)} (${workStartDate.toLocaleTimeString()}~${workEndDate.toLocaleTimeString()})`);
+
+        // ==== 計算 priorityScore ===========================================================================================
+        let minScore = 0;
+        this.workItems.forEach(i => {
+            i.targetHours = 0;
+            i.priorityScore = 0;
+
+            let ratioScore = i.ratio * 100; //完成度分數
+            let dateScore = (i.endTime - Date.now()) / (24 * 60 * 60 * 1000); // 剩餘天數分數 (天)
+
+            i.priorityScore = i.priorityScore - ratioScore - dateScore;
+
+            minScore = minScore < i.priorityScore ? minScore : i.priorityScore;
+        });
+
+        this.workItems.forEach(i => {
+            // 將 priorityScore shift到正數 (minScore為最小的score, 負數)
+            i.priorityScore -= minScore;
+
+            //已過期工作priorityScore歸零
+            if (i.endTime - Date.now() < 0) i.priorityScore = 0;
+
+            // 已達this.workItemMaxRatio的工作項 priorityScore歸零
+            if (i.ratio >= this.workItemMaxRatio) i.priorityScore = 0;
+        });
+
+        // 根據priorityScore對工作項目進行排序 (priorityScore大的在前面)
+        this.workItems.sort((a, b) => b.priorityScore - a.priorityScore);
+
+        // 获取前幾個个工作项 (workItemsPerDay), 並排除 priorityScore=0 的項目
+        if (workHoursAvalible < 0.5) workItemsPerDay = 2;
+        if (workHoursAvalible < 0.2) workItemsPerDay = 1;
+        const topItems = this.workItems.filter(i => i.priorityScore !== 0).slice(0, workItemsPerDay);
+
+        // 计算 priorityScore 的总和
+        const totalPriorityScore = topItems.reduce((total, workItem) => total + workItem.priorityScore, 0);
 
         // ==== 分配每個工作項目的時間 ===========================================================================================
         let workHoursLeft = workHoursAvalible;
