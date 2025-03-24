@@ -6,7 +6,7 @@
         <q-space />
 
         <!-- DevTools 切換按鈕，使用不同圖標和顏色顯示開啟/關閉狀態 -->
-        <q-btn v-if="isDevelopment" dense flat :icon="sm.devModeView ? 'developer_mode' : 'code'" :color="sm.devModeView ? 'red-8' : 'deep-orange-2'" @click="toggleDevMode" tooltip="切換開發模式" />
+        <q-btn v-if="isDevelopment" dense flat :icon="sm.devModeView ? 'developer_board' : 'developer_board_off'" :color="sm.devModeView ? 'amber-8' : 'deep-orange-2'" @click="toggleDevMode" tooltip="切換開發模式" />
         <q-btn dense flat icon="minimize" @click="winAction('minimize')" />
         <q-btn dense flat icon="crop_square" @click="winAction('maximize')" />
         <q-btn dense flat icon="close" @click="winAction('close')" />
