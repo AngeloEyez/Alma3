@@ -1,5 +1,5 @@
 <template>
-    <div>My component</div>
+    <!-- <div>My component</div> -->
     <q-table flat bordered dense title="Work Items" :rows="Array.from(sm.workItems.values())" :columns="columns" row-key="id" :pagination="initialPagination" binary-state-sort>
         <template v-slot:body="props">
             <q-tr

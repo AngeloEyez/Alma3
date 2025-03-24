@@ -58,8 +58,9 @@ function createWindow() {
     mainWindow = new BrowserWindow({
         icon: path.resolve(__dirname, 'icons/icon.png'), // tray icon
         width: 1020, // 根據 devModeView 設置視窗寬度
-        height: 600,
+        height: 520,
         minWidth: 1020, // 設定最小寬度為 1000px
+        minHeight: 520,
         frame: false, // [Alma] frameless window
         useContentSize: true,
         webPreferences: {
