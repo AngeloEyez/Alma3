@@ -4,14 +4,19 @@
             <q-card-section class="q-pt-xs">
                 <q-item>
                     <q-item-section>
-                        <q-item-label>On-Going WorkItems ({{ sm.onGoingWorkItems.length }})</q-item-label>
-                        <q-item-label caption class="text-white">SPAS自動暫停時間:{{ sm.today.desendTime }}</q-item-label>
-                        <q-item-label caption class="text-white">上班時間:{{ sm.today.clockInTime }}</q-item-label>
+                        <q-item-label>
+                            使用者帳號: {{ sm.s.signIn.workId }}
+                            <span v-if="sm.s.signIn.userName">({{ sm.s.signIn.userName }})</span>
+                        </q-item-label>
+                        <q-item-label caption class="text-white">上班時間: {{ sm.today.clockInTime || '等待取得...' }}</q-item-label>
+                        <q-item-label caption class="text-white">SPAS自動暫停時間: {{ sm.today.desendTime || '等待取得...' }}</q-item-label>
+                        <q-item-label caption class="text-white">預設上班時間: {{ sm.s.workStartTime }}</q-item-label>
+                        <q-item-label caption class="text-white">預設下班時間: {{ sm.s.workEndTime }}</q-item-label>
                     </q-item-section>
                 </q-item>
             </q-card-section>
             <q-space />
-            <q-card-section class="q-pt-xs">
+            <q-card-section class="q-pt-xs" v-if="isDevelopment">
                 <q-input v-model="sm.today.schedule2" label="today.schedule2" />
                 <button @click="test">test</button>
                 <button @click="sm.getWorkItemsFromSpas()">getWorkItemsFromSpas</button>
@@ -19,6 +24,9 @@
                 <button @click="sm.approveItems">approveItems</button>
                 <button @click="sm.finishItems">finishItems</button>
             </q-card-section>
+            <q-card-actions vertical class="justify-start">
+                <spasSettings />
+            </q-card-actions>
         </q-card-section>
         <!-- <q-card-section class="row">
             <q-item>
@@ -29,9 +37,14 @@
 </template>
 
 <script setup>
-import { ref, reactive, inject } from 'vue';
+import { ref, inject } from 'vue';
 import { calculateBusinessDays, toPercent, delay, timeToDate, addMinutes } from 'app/spas/utils.js';
+import spasSettings from './spasSettings.vue';
+
 const sm = inject('spasManager');
+
+// 判斷是否為開發模式
+const isDevelopment = ref(process.env.NODE_ENV !== 'production');
 
 async function test() {
     // for (const i of sm.onGoingWorkItems) {

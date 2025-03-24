@@ -42,6 +42,16 @@ const ALMA_API = {
 
     close: () => {
         ipcRenderer.send('window-close');
+    },
+
+    // 添加 DevTools 切換功能
+    toggleDevTools: () => {
+        ipcRenderer.send('toggle-dev-tools');
+    },
+
+    // 獲取當前開發模式狀態
+    isDevToolsOpen: async () => {
+        return await ipcRenderer.invoke('is-dev-tools-open');
     }
 };
 

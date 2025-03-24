@@ -1,0 +1,9 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# build command
+- production build: quasar build -m electron
+- dev build: quasar dev -m electron '--' --no-sandbox --disable-setuid-sandbox

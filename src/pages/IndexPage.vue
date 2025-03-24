@@ -31,5 +31,5 @@ import spasWorkItemTable from 'src/components/spasWorkItemTable.vue';
 <style lang="sass" scoped>
 .my-card
   width: 100%
-  max-width: 1300px
+  min-width: 1000px
 </style>
