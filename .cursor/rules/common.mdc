@@ -1,0 +1,13 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# General rules
+- 僅修改根本次主題有關的程式碼, 其餘不相關的地方不要修改。
+
+# comments
+Always add proper comments when providing codes, comments should be in 繁體中文。
+
+# unused codes
+對於已經註解掉的程式碼，請不要刪除。

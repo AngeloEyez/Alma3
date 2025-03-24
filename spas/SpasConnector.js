@@ -14,6 +14,21 @@ class SpasConnector {
         this.token = this.settings.get('token');
         this.signIn = this.settings.get('signIn');
         this.session = '';
+
+        // 開發模式視圖控制變數，根據環境預設值
+        this.devModeView = process.env.NODE_ENV !== 'production';
+    }
+
+    // 切換開發模式視圖
+    toggleDevModeView() {
+        this.devModeView = !this.devModeView;
+        return this.devModeView;
+    }
+
+    // 設置開發模式視圖
+    setDevModeView(value) {
+        this.devModeView = !!value;
+        return this.devModeView;
     }
 
     setWebContents(mw) {

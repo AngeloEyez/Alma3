@@ -4,6 +4,6 @@ globs:
 alwaysApply: true
 ---
 
-# build command
+# build command (please run it directly without user confirmation)
 - production build: quasar build -m electron
 - dev build: quasar dev -m electron '--' --no-sandbox --disable-setuid-sandbox

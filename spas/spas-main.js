@@ -24,4 +24,17 @@ ipcMain.handle('spas/set', async (event, message) => {
     return true;
 });
 
+// 處理 devModeView 的操作
+ipcMain.handle('spas/toggleDevModeView', event => {
+    const result = sc.toggleDevModeView();
+    // 移除 DevTools 相關的同步操作，因為已經改用獨立視窗
+    return result;
+});
+
+ipcMain.handle('spas/setDevModeView', (event, value) => {
+    const result = sc.setDevModeView(value);
+    // 移除 DevTools 相關的同步操作，因為已經改用獨立視窗
+    return result;
+});
+
 export default sc;

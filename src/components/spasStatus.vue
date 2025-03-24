@@ -5,7 +5,7 @@
                 <q-item>
                     <q-item-section>
                         <q-item-label>
-                            使用者帳號: {{ sm.s.signIn.workId }}
+                            <b>{{ sm.s.signIn.workId }}</b>
                             <span v-if="sm.s.signIn.userName">({{ sm.s.signIn.userName }})</span>
                         </q-item-label>
                         <q-item-label caption class="text-white">上班時間: {{ sm.today.clockInTime || '等待取得...' }}</q-item-label>
@@ -16,7 +16,7 @@
                 </q-item>
             </q-card-section>
             <q-space />
-            <q-card-section class="q-pt-xs" v-if="isDevelopment">
+            <q-card-section class="q-pt-xs" v-if="sm.devModeView">
                 <q-input v-model="sm.today.schedule2" label="today.schedule2" />
                 <button @click="test">test</button>
                 <button @click="sm.getWorkItemsFromSpas()">getWorkItemsFromSpas</button>
@@ -37,14 +37,11 @@
 </template>
 
 <script setup>
-import { ref, inject } from 'vue';
+import { inject } from 'vue';
 import { calculateBusinessDays, toPercent, delay, timeToDate, addMinutes } from 'app/spas/utils.js';
 import spasSettings from './spasSettings.vue';
 
 const sm = inject('spasManager');
-
-// 判斷是否為開發模式
-const isDevelopment = ref(process.env.NODE_ENV !== 'production');
 
 async function test() {
     // for (const i of sm.onGoingWorkItems) {

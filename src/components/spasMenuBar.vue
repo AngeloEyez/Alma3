@@ -5,8 +5,8 @@
 
         <q-space />
 
-        <!-- DevTools 切換按鈕，只在開發模式下顯示 -->
-        <q-btn v-if="isDevelopment" dense flat :icon="isDevToolsOpen ? 'code_off' : 'code'" :color="isDevToolsOpen ? 'orange' : 'white'" @click="toggleDevTools" tooltip="切換開發工具" />
+        <!-- DevTools 切換按鈕，使用不同圖標和顏色顯示開啟/關閉狀態 -->
+        <q-btn v-if="isDevelopment" dense flat :icon="sm.devModeView ? 'developer_mode' : 'code'" :color="sm.devModeView ? 'red-8' : 'deep-orange-2'" @click="toggleDevMode" tooltip="切換開發模式" />
         <q-btn dense flat icon="minimize" @click="winAction('minimize')" />
         <q-btn dense flat icon="crop_square" @click="winAction('maximize')" />
         <q-btn dense flat icon="close" @click="winAction('close')" />
@@ -14,11 +14,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { inject, ref } from 'vue';
 
 // 判斷是否為開發模式
 const isDevelopment = ref(process.env.NODE_ENV !== 'production');
-const isDevToolsOpen = ref(false);
+const sm = inject('spasManager');
 
 // 窗口操作函數
 function winAction(a) {
@@ -41,27 +41,10 @@ function winAction(a) {
     }
 }
 
-// 切換 DevTools
-function toggleDevTools() {
-    ALMA.toggleDevTools();
+// 切換開發模式
+async function toggleDevMode() {
+    // 僅切換 SpasManager 中的 devModeView 狀態
+    SPAS.toggleDevModeView();
+    sm.devModeView = !sm.devModeView;
 }
-
-// 監聽 DevTools 狀態變化
-async function updateDevToolsStatus() {
-    if (isDevelopment.value) {
-        isDevToolsOpen.value = await ALMA.isDevToolsOpen();
-    }
-}
-
-// 初始化時獲取 DevTools 狀態
-onMounted(async () => {
-    await updateDevToolsStatus();
-
-    // 定期檢查 DevTools 狀態
-    const intervalId = setInterval(updateDevToolsStatus, 1000);
-
-    onBeforeUnmount(() => {
-        clearInterval(intervalId);
-    });
-});
 </script>

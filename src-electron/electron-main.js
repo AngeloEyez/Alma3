@@ -8,6 +8,36 @@ import sc from '../spas/spas-main.js';
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform();
 
+// 保存 DevTools 視窗實例
+let devToolsWindow = null;
+
+// 創建 DevTools 視窗的函數
+function createDevToolsWindow(mainWindow) {
+    if (devToolsWindow) {
+        devToolsWindow.focus();
+        return;
+    }
+
+    devToolsWindow = new BrowserWindow({
+        width: 500,
+        height: 800,
+        title: 'DevTools',
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false
+        }
+    });
+
+    // 設置主視窗的 DevTools 到新視窗
+    mainWindow.webContents.setDevToolsWebContents(devToolsWindow.webContents);
+    mainWindow.webContents.openDevTools({ mode: 'detach' });
+
+    // 當 DevTools 視窗關閉時，清除引用
+    devToolsWindow.on('closed', () => {
+        devToolsWindow = null;
+    });
+}
+
 try {
     if (platform === 'win32' && nativeTheme.shouldUseDarkColors === true) {
         require('fs').unlinkSync(path.join(app.getPath('userData'), 'DevTools Extensions'));
@@ -17,8 +47,6 @@ try {
 let mainWindow;
 // 保存 DevTools 狀態
 let isDevToolsOpen = false;
-// DevTools 寬度（用於調整視窗大小）
-const devToolsWidth = 500;
 
 function createWindow() {
     // 判斷是否為開發模式
@@ -29,9 +57,9 @@ function createWindow() {
      */
     mainWindow = new BrowserWindow({
         icon: path.resolve(__dirname, 'icons/icon.png'), // tray icon
-        width: isDev ? 1100 + devToolsWidth : 1100, // 開發模式下增加視窗寬度
+        width: 1020, // 根據 devModeView 設置視窗寬度
         height: 600,
-        minWidth: 1000, // 設定最小寬度為 1000px
+        minWidth: 1020, // 設定最小寬度為 1000px
         frame: false, // [Alma] frameless window
         useContentSize: true,
         webPreferences: {
@@ -43,12 +71,12 @@ function createWindow() {
 
     mainWindow.loadURL(process.env.APP_URL);
 
-    // 開發模式下自動開啟 DevTools
-    if (isDev) {
-        mainWindow.webContents.openDevTools();
+    // 根據 devModeView 狀態決定是否開啟 DevTools
+    if (sc.devModeView) {
+        createDevToolsWindow(mainWindow);
         isDevToolsOpen = true;
-    } else {
-        // we're on production; no access to devtools pls
+    } else if (!isDev) {
+        // 在 production 模式下禁用 DevTools
         mainWindow.webContents.on('devtools-opened', () => {
             mainWindow.webContents.closeDevTools();
         });
@@ -58,35 +86,11 @@ function createWindow() {
         mainWindow = null;
     });
 
-    // 監聽 DevTools 開啟關閉事件
-    mainWindow.webContents.on('devtools-opened', () => {
-        isDevToolsOpen = true;
-        adjustWindowSize(true);
-    });
-
-    mainWindow.webContents.on('devtools-closed', () => {
-        isDevToolsOpen = false;
-        adjustWindowSize(false);
-    });
-
     // [Alma] Start SpasConnector
     mainWindow.webContents.on('did-finish-load', () => {
         sc.setWebContents(mainWindow.webContents);
         sc.send('init'); // start from initialize spasManager.
     });
-}
-
-// 根據 DevTools 狀態調整視窗大小
-function adjustWindowSize(isDevToolsOpen) {
-    if (!mainWindow) return;
-
-    const [width, height] = mainWindow.getSize();
-    const newWidth = isDevToolsOpen ? width + devToolsWidth : width - devToolsWidth;
-
-    // 如果當前視窗尺寸與預期尺寸相差不大，則不調整
-    if (Math.abs(newWidth - width) < 100) return;
-
-    mainWindow.setSize(newWidth, height);
 }
 
 app.whenReady().then(createWindow);
@@ -121,8 +125,11 @@ ipcMain.on('toggle-dev-tools', () => {
     if (mainWindow) {
         if (isDevToolsOpen) {
             mainWindow.webContents.closeDevTools();
+            if (devToolsWindow) {
+                devToolsWindow.close();
+            }
         } else {
-            mainWindow.webContents.openDevTools();
+            createDevToolsWindow(mainWindow);
         }
     }
 });

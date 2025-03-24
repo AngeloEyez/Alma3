@@ -17,6 +17,9 @@ export class SpasManager {
         this.jobRunnerID = null;
         this.timerID = {};
 
+        // 開發模式視圖控制變數，根據環境預設值
+        this.devModeView = process.env.NODE_ENV !== 'production';
+
         this.today = {
             schedule2: ['15:00'],
             clockInTime: '', //上班打卡時間
@@ -32,6 +35,18 @@ export class SpasManager {
         };
 
         this.workItemMaxRatio = 0.995;
+    }
+
+    // 切換開發模式視圖
+    toggleDevModeView() {
+        this.devModeView = !this.devModeView;
+        return this.devModeView;
+    }
+
+    // 設置開發模式視圖
+    setDevModeView(value) {
+        this.devModeView = !!value;
+        return this.devModeView;
     }
 
     async do(event, msg) {

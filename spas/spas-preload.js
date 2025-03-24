@@ -28,6 +28,13 @@ const SPAS_API = {
             value: value
         });
         return ipcRenderer.invoke('spas/set', ipcMsg);
+    },
+    // 與 SpasManager.devModeView 相關的方法
+    toggleDevModeView: () => {
+        return ipcRenderer.invoke('spas/toggleDevModeView');
+    },
+    setDevModeView: value => {
+        return ipcRenderer.invoke('spas/setDevModeView', value);
     }
 };
 
@@ -44,14 +51,9 @@ const ALMA_API = {
         ipcRenderer.send('window-close');
     },
 
-    // 添加 DevTools 切換功能
+    // 保留 DevTools 切換功能，因為這仍然可能在其他地方被單獨使用
     toggleDevTools: () => {
         ipcRenderer.send('toggle-dev-tools');
-    },
-
-    // 獲取當前開發模式狀態
-    isDevToolsOpen: async () => {
-        return await ipcRenderer.invoke('is-dev-tools-open');
     }
 };
 
