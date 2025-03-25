@@ -88,14 +88,6 @@ function createWindow() {
         mainWindow.setSize(savedSize.width, savedSize.height);
     }
 
-    mainWindow.on('closed', () => {
-        if (devToolsWindow) {
-            devToolsWindow.close();
-            devToolsWindow = null;
-        }
-        mainWindow = null;
-    });
-
     mainWindow.on('resize', () => {
         if (!mainWindow.isMaximized()) {
             const size = mainWindow.getSize();
@@ -105,6 +97,14 @@ function createWindow() {
                 height: size[1]
             });
         }
+    });
+
+    mainWindow.on('closed', () => {
+        if (devToolsWindow) {
+            devToolsWindow.close();
+            devToolsWindow = null;
+        }
+        mainWindow = null;
     });
 
     // [Alma] Start SpasConnector
