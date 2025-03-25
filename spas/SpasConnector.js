@@ -6,6 +6,7 @@ import { axios } from '../src/boot/axios';
 import { delay } from './utils.js';
 import { SpasConfig } from './spasConfig.js';
 import { Settings } from './settings.js';
+import { BrowserWindow } from 'electron';
 
 class SpasConnector {
     constructor() {
@@ -41,7 +42,11 @@ class SpasConnector {
 
     init() {
         let result = false;
-        console.log(`spasconnector initing...workId=${this.signIn.workId} | password=${this.signIn.password} | token=${this.token}`);
+        // 重新讀取setting資料
+        this.token = this.settings.get('token');
+        this.signIn = this.settings.get('signIn');
+
+        console.log(`spasConnector initing...workId=${this.signIn.workId} | password=${this.signIn.password} | token=${this.token}`);
         if (this.signIn.workId == '' || this.token == '') {
             this.send('needSignIn');
             console.log('needSignIn');
@@ -66,10 +71,13 @@ class SpasConnector {
                 break;
             }
             case 'logOut': {
+                console.log('SC: loging out...');
                 this.settings.reset('signIn');
                 this.settings.reset('token');
                 this.token = this.settings.get('signIn.token');
                 this.signIn = this.settings.get('signIn');
+                this.session = '';
+
                 this.init();
                 break;
             }
@@ -99,7 +107,7 @@ class SpasConnector {
                     console.log(JSON.stringify(res.config));
                     result = { result: false, msg: `signIn Error: ${res.data.msg}` };
                 } else {
-                    console.log('token updated.');
+                    console.log('SignIn Successful.');
                     this.token = res.data.data.token;
                     this.signIn.workId = msg.data.workId;
                     this.signIn.password = msg.data.password;
@@ -114,11 +122,23 @@ class SpasConnector {
                         c.headers.token = t.token;
                         let res = await axios(c);
                         if (res.data.code != 200) console.log(JSON.stringify(res.data));
-                        t.settings.set('signIn.bunitId', res.data.data.items[0].userComDeptDTO.bunitId);
-                        t.settings.set('signIn.divisionId', res.data.data.items[0].userComDeptDTO.divisionId);
-                        t.settings.set('signIn.deptId', res.data.data.items[0].userComDeptDTO.deptId);
-                        t.settings.set('signIn.sectionId', res.data.data.items[0].userComDeptDTO.sectionId);
-                        t.settings.set('signIn.userName', res.data.data.items[0].userName);
+                        // 歷遍 items 陣列，找到符合 workId 的使用者資料
+                        for (const item of res.data.data.items) {
+                            if (item.workId === t.signIn.workId) {
+                                t.settings.set('signIn.bunitId', item.userComDeptDTO.bunitId);
+                                t.settings.set('signIn.divisionId', item.userComDeptDTO.divisionId);
+                                t.settings.set('signIn.deptId', item.userComDeptDTO.deptId);
+                                t.settings.set('signIn.sectionId', item.userComDeptDTO.sectionId);
+                                t.settings.set('signIn.userName', item.userName);
+
+                                // 廣播變更給所有開啟的 Renderer
+                                BrowserWindow.getAllWindows().forEach(win => {
+                                    win.webContents.send('toRenderer', 'store-changed');
+                                });
+
+                                break;
+                            }
+                        }
                     })(this);
                 }
                 break;

@@ -13,7 +13,7 @@ const SPAS_API = {
     receive: (channel, listener) => {
         let validChannels = ['toRenderer'];
         if (validChannels.includes(channel)) {
-            ipcRenderer.on(channel, (event, message) => listener(event, message));
+            ipcRenderer.on(channel, (event, ...args) => listener(event, ...args));
         }
     },
     get: async key => {

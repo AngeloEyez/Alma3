@@ -1,6 +1,4 @@
-//const Store = require("electron-store");
 import Store from 'electron-store';
-import path from 'path';
 // 避免在 renderer 進程中直接導入 app
 let app;
 try {

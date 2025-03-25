@@ -78,7 +78,8 @@ async function saveSettings() {
         sm.s.token = '';
 
         // 重新登入
-        SPAS.do('initSpasConnector');
+        await SPAS.do('logOut');
+        SPAS.do('signIn');
     }
 }
 </script>

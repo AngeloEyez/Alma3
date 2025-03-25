@@ -54,6 +54,13 @@ export class SpasManager {
         switch (msg) {
             case 'init': {
                 this.s = await SPAS.getAllSettings();
+                // 監聽 toRenderer channel 來自 main process 的事件
+                SPAS.receive('toRenderer', async (_event, eventType, updates) => {
+                    if (eventType  === 'store-changed') {
+                        // 當收到 store-changed 事件時，重新取得所有設定
+                        this.s = await SPAS.getAllSettings();
+                    } 
+                });
                 console.log('spasManager initialized.');
                 SPAS.do('initSpasConnector');
                 break;
