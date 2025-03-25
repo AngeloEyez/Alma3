@@ -1,7 +1,13 @@
 <template>
     <q-bar class="q-electron-drag">
         <q-icon name="laptop_chromebook" />
-        <div>ALMA - SPAS Assistant</div>
+        <div>
+            ALMA - SPAS Assistant
+            <template v-if="sm.s.signIn.workId">
+                - {{ sm.s.signIn.workId }}
+                <span v-if="sm.s.signIn.userName" class="text-caption q-ml-xs">({{ sm.s.signIn.userName }})</span>
+            </template>
+        </div>
 
         <q-space />
 

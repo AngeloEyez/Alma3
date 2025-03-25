@@ -1,41 +1,35 @@
 <template>
     <q-card flat bordered>
-        <q-card-section class="bg-grey-7 text-white q-py-xs">
+        <q-card-section class="bg-light-blue-8 text-white q-py-xs">
             <div class="row no-wrap items-center q-gutter-x-md">
-                <!-- 左欄：用戶 ID 和名稱 -->
-                <div class="col-auto">
-                    <div class="text-subtitle1 text-weight-medium">
-                        {{ sm.s.signIn.workId }}
-                        <span v-if="sm.s.signIn.userName" class="text-caption q-ml-xs">({{ sm.s.signIn.userName }})</span>
-                    </div>
-                </div>
 
-                <q-separator vertical dark />
-
-                <!-- 右欄：時間資訊 -->
                 <div class="col row wrap q-gutter-x-md q-gutter-y-xs">
                     <!-- 第一行 -->
                     <div class="col-auto text-caption">
                         <q-icon name="login" size="xs" class="q-mr-xs" />
-                        上班時間: {{ sm.today.clockInTime || '等待取得...' }}
+                        上班: {{ sm.today.clockInTime || '--:--' }}
                     </div>
                     <div class="col-auto text-caption">
                         <q-icon name="schedule" size="xs" class="q-mr-xs" />
-                        SPAS自動暫停時間: {{ sm.today.desendTime || '等待取得...' }}
+                        SPAS自動暫停: {{ sm.today.desendTime || '--:--' }}
                     </div>
 
                     <!-- 第二行 -->
                     <div class="col-auto text-caption">
                         <q-icon name="access_time" size="xs" class="q-mr-xs" />
-                        預設上班時間: {{ sm.s.workStartTime }}
+                        預設上班: {{ sm.s.workStartTime }}
                     </div>
                     <div class="col-auto text-caption">
                         <q-icon name="access_time" size="xs" class="q-mr-xs" />
-                        預設下班時間: {{ sm.s.workEndTime }}
+                        預設下班: {{ sm.s.workEndTime }}
                     </div>
                     <div class="col-auto text-caption">
                         <q-icon name="exit_to_app" size="xs" class="q-mr-xs" />
-                        今日Alma下班時間: {{ sm.today.endDate ? sm.today.endDate.Format('hh:mm') : '--:--' }}
+                        今日Alma下班: {{ sm.today.endDate ? sm.today.endDate.Format('hh:mm') : '--:--' }}
+                    </div>
+                    <div class="col-auto text-caption q-ml-auto">
+                        <q-icon name="favorite" size="xs" class="q-mr-xs" />
+                        {{ sm._lastRunTime ? new Date(sm._lastRunTime).Format('hh:mm:ss') : '--:--' }}
                     </div>
                 </div>
             </div>
