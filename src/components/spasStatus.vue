@@ -16,11 +16,6 @@
                     </q-item-section>
                 </q-item>
             </q-card-section>
-            <q-space />
-
-            <q-card-actions vertical class="justify-start">
-                <spasSettings />
-            </q-card-actions>
         </q-card-section>
     </q-card>
     <!-- develop mode area-->
@@ -34,7 +29,7 @@
             <button @click="sm.finishItems">finishItems</button>
         </q-card-section>
         <q-card-section class="q-pt-xs">
-            <q-item >
+            <q-item>
                 <q-item-section v-for="(value, key) in sm.onGoingWorkItems3" :key="key">{{ key }}: {{ value.id }} ({{ value.status }}) {{ Number(value.investedHours).toFixed(3) }}/{{ value.pmHours }} - {{ value.name }} ({{ new Date(value.startTime).Format('yyyy-MM-dd') }})-({{ new Date(value.endTime).Format('yyyy-MM-dd') }})</q-item-section>
             </q-item>
         </q-card-section>
@@ -44,7 +39,6 @@
 <script setup>
 import { inject } from 'vue';
 import { calculateBusinessDays, toPercent, delay, timeToDate, addMinutes } from 'app/spas/utils.js';
-import spasSettings from './spasSettings.vue';
 
 const sm = inject('spasManager');
 
