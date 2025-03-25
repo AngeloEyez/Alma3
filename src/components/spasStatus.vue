@@ -17,23 +17,27 @@
                 </q-item>
             </q-card-section>
             <q-space />
-            <q-card-section class="q-pt-xs" v-if="sm.devModeView">
-                <q-input v-model="sm.today.schedule2" label="today.schedule2" />
-                <button @click="test">test</button>
-                <button @click="sm.getWorkItemsFromSpas()">getWorkItemsFromSpas</button>
-                <button @click="sm.calWorkPlanByWorkItem(8, 3)">calWorkPlanByWorkItem</button>
-                <button @click="sm.approveItems">approveItems</button>
-                <button @click="sm.finishItems">finishItems</button>
-            </q-card-section>
+
             <q-card-actions vertical class="justify-start">
                 <spasSettings />
             </q-card-actions>
         </q-card-section>
-        <!-- <q-card-section class="row">
-            <q-item>
+    </q-card>
+    <!-- develop mode area-->
+    <q-card v-if="sm.devModeView">
+        <q-card-section class="q-pt-xs">
+            <q-input v-model="sm.today.schedule2" label="today.schedule2" />
+            <button @click="test">test</button>
+            <button @click="sm.getWorkItemsFromSpas()">getWorkItemsFromSpas</button>
+            <button @click="sm.calWorkPlanByWorkItem(8, 3)">calWorkPlanByWorkItem</button>
+            <button @click="sm.approveItems">approveItems</button>
+            <button @click="sm.finishItems">finishItems</button>
+        </q-card-section>
+        <q-card-section class="q-pt-xs">
+            <q-item >
                 <q-item-section v-for="(value, key) in sm.onGoingWorkItems3" :key="key">{{ key }}: {{ value.id }} ({{ value.status }}) {{ Number(value.investedHours).toFixed(3) }}/{{ value.pmHours }} - {{ value.name }} ({{ new Date(value.startTime).Format('yyyy-MM-dd') }})-({{ new Date(value.endTime).Format('yyyy-MM-dd') }})</q-item-section>
             </q-item>
-        </q-card-section> -->
+        </q-card-section>
     </q-card>
 </template>
 

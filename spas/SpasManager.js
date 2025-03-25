@@ -24,7 +24,7 @@ export class SpasManager {
             schedule2: ['15:00'],
             clockInTime: '', //上班打卡時間
             desendTime: '', //SPAS系統上計算應下班時間
-            endDate: timeToDate("18:30"), //ALMA 應下班時間
+            endDate: timeToDate('18:30') //ALMA 應下班時間
         };
 
         this.signInDialog = {
@@ -106,7 +106,7 @@ export class SpasManager {
             }
         });
 
-        this.jobRunnerID = setInterval(this._jobRunner.bind(this), 60000);
+        this.jobRunnerID = setInterval(this._jobRunner.bind(this), 55000); // 55秒
         console.log('spasManager Started');
     }
 
@@ -146,7 +146,7 @@ export class SpasManager {
         }
 
         // 特定時間執行 2 --------------------------------------------------------------------
-        let scheduleTime2 = ['15:00', '16:00', '16:40', '16:50', '17:00', '17:10', '17:20', '17:30',  '17:50'];
+        let scheduleTime2 = ['15:00', '16:00', '16:40', '16:50', '17:00', '17:10', '17:20', '17:30', '17:50'];
         if (scheduleTime2.includes(date.myGetTime())) {
             console.log(`schedule2: get clockin and desend Time. (clockInTime:${this.today.clockInTime})`);
             if (this.today.clockInTime != null) {
