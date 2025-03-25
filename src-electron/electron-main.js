@@ -8,8 +8,11 @@ import sc from '../spas/spas-main.js';
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform();
 
+let mainWindow;
 // 保存 DevTools 視窗實例
 let devToolsWindow = null;
+// 保存 DevTools 狀態
+let isDevToolsOpen = false;
 
 // 創建 DevTools 視窗的函數
 function createDevToolsWindow(mainWindow) {
@@ -44,9 +47,7 @@ try {
     }
 } catch (_) {}
 
-let mainWindow;
-// 保存 DevTools 狀態
-let isDevToolsOpen = false;
+
 
 function createWindow() {
     // 判斷是否為開發模式
@@ -84,6 +85,10 @@ function createWindow() {
     }
 
     mainWindow.on('closed', () => {
+      if (devToolsWindow) {
+        devToolsWindow.close();
+        devToolsWindow = null;
+    }
         mainWindow = null;
     });
 
