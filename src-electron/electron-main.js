@@ -47,8 +47,6 @@ try {
     }
 } catch (_) {}
 
-
-
 function createWindow() {
     // 判斷是否為開發模式
     const isDev = process.env.DEBUGGING || process.env.NODE_ENV === 'development';
@@ -85,10 +83,10 @@ function createWindow() {
     }
 
     mainWindow.on('closed', () => {
-      if (devToolsWindow) {
-        devToolsWindow.close();
-        devToolsWindow = null;
-    }
+        if (devToolsWindow) {
+            devToolsWindow.close();
+            devToolsWindow = null;
+        }
         mainWindow = null;
     });
 
@@ -147,21 +145,30 @@ ipcMain.handle('is-dev-tools-open', () => {
 
 // [Alma] frameless window
 ipcMain.on('window-minimize', () => {
-    const win = BrowserWindow.getFocusedWindow();
-    win.minimize();
+    if (mainWindow) mainWindow.minimize();
 });
 
 ipcMain.on('window-maximize', () => {
-    const win = BrowserWindow.getFocusedWindow();
-    //win.setFullScreen(!win.isFullScreen());
-    if (win.isMaximized()) {
-        win.unmaximize();
-    } else {
-        win.maximize();
+    if (mainWindow) {
+        if (mainWindow.isMaximized()) {
+            mainWindow.unmaximize();
+        } else {
+            mainWindow.maximize();
+        }
     }
 });
 
 ipcMain.on('window-close', () => {
-    const win = BrowserWindow.getFocusedWindow();
-    win.close();
+    if (mainWindow) {
+        // 關閉主視窗時，會觸發 closed 事件，在那裡會處理 DevTools 視窗的關閉
+        mainWindow.close();
+    }
+});
+
+// 檢查視窗是否最大化
+ipcMain.handle('window-is-maximized', () => {
+    if (mainWindow) {
+        return mainWindow.isMaximized();
+    }
+    return false;
 });

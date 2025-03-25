@@ -56,10 +56,10 @@ export class SpasManager {
                 this.s = await SPAS.getAllSettings();
                 // 監聽 toRenderer channel 來自 main process 的事件
                 SPAS.receive('toRenderer', async (_event, eventType, updates) => {
-                    if (eventType  === 'store-changed') {
+                    if (eventType === 'store-changed') {
                         // 當收到 store-changed 事件時，重新取得所有設定
                         this.s = await SPAS.getAllSettings();
-                    } 
+                    }
                 });
                 console.log('spasManager initialized.');
                 SPAS.do('initSpasConnector');
@@ -72,6 +72,9 @@ export class SpasManager {
             case 'needSignIn': {
                 this.needSignIn();
                 break;
+            }
+            case 'getSettings': {
+                this.s = SPAS.getAllSettings();
             }
             default: {
                 break;
@@ -101,6 +104,7 @@ export class SpasManager {
 
         console.log('start: get clockin and desend Time');
         SPAS.do('getClockInData').then(res => {
+            console.log('getClockInData:', res);
             this.today.clockInTime = res.inTime;
             try {
                 let t = res.dsendTime.split(' ')[1].split(':'); //dsendTime: "2022-10-03 17:38:00"

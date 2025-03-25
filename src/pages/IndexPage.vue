@@ -1,17 +1,15 @@
 <template>
-    <q-page class="flex flex-center">
-        <div class="q-my-sm">
-            <q-card class="my-card q-mb-sm">
-                <spasStatus />
-            </q-card>
+    <q-page class="column no-wrap">
+        <!-- 狀態欄 - 靠上方 -->
+        <div class="col-auto q-px-md q-pt-md">
+            <spasStatus />
+        </div>
 
-            <q-card class="my-card">
+        <!-- 工作項目表 - 填滿剩餘空間 -->
+        <div class="col q-px-md q-py-sm" style="min-height: 0">
+            <q-card class="full-height" flat bordered>
                 <spasWorkItemTable />
             </q-card>
-
-            <!-- <q-card class="my-card">
-        <spasProjectTable />
-      </q-card> -->
         </div>
     </q-page>
 
@@ -29,7 +27,19 @@ import spasWorkItemTable from 'src/components/spasWorkItemTable.vue';
 </script>
 
 <style lang="sass" scoped>
-.my-card
-  width: 100%
-  min-width: 1000px
+.q-page
+  height: calc(100vh - 50px) // 減去頂部欄高度
+
+.full-height
+  height: 100%
+  display: flex
+  flex-direction: column
+
+// 確保 WorkItemTable 自動填滿父容器
+:deep(.full-height > .q-card__section)
+  flex: 1
+  overflow: auto
+  display: flex
+  flex-direction: column
+
 </style>

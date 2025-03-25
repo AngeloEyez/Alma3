@@ -51,6 +51,11 @@ const ALMA_API = {
         ipcRenderer.send('window-close');
     },
 
+    // 檢查視窗是否最大化
+    isMaximized: async () => {
+        return await ipcRenderer.invoke('window-is-maximized');
+    },
+
     // 保留 DevTools 切換功能，因為這仍然可能在其他地方被單獨使用
     toggleDevTools: () => {
         ipcRenderer.send('toggle-dev-tools');
