@@ -82,12 +82,29 @@ function createWindow() {
         });
     }
 
+    // 根據 settings裡面儲存的視窗大小調整
+    const savedSize = sc.settings.get('windowSize');
+    if (savedSize) {
+        mainWindow.setSize(savedSize.width, savedSize.height);
+    }
+
     mainWindow.on('closed', () => {
         if (devToolsWindow) {
             devToolsWindow.close();
             devToolsWindow = null;
         }
         mainWindow = null;
+    });
+
+    mainWindow.on('resize', () => {
+        if (!mainWindow.isMaximized()) {
+            const size = mainWindow.getSize();
+            console.log('window size changed:', size);
+            sc.settings.set('windowSize', {
+                width: size[0],
+                height: size[1]
+            });
+        }
     });
 
     // [Alma] Start SpasConnector
