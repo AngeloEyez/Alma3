@@ -12,6 +12,7 @@
                         <q-item-label caption class="text-white">SPAS自動暫停時間: {{ sm.today.desendTime || '等待取得...' }}</q-item-label>
                         <q-item-label caption class="text-white">預設上班時間: {{ sm.s.workStartTime }}</q-item-label>
                         <q-item-label caption class="text-white">預設下班時間: {{ sm.s.workEndTime }}</q-item-label>
+                        <q-item-label caption class="text-white">今日Alma下班時間: {{ sm.today.endDate.Format('hh:mm') }}</q-item-label>
                     </q-item-section>
                 </q-item>
             </q-card-section>

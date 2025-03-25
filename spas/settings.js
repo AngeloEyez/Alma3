@@ -40,7 +40,8 @@ const storeConfig = {
         workStartTime: '07:36',
         workEndTime: '17:05',
         disabledProject: [1696, 1697],
-        simultaneousGroup: []
+        simultaneousGroup: [],
+        useSpasEndTime: false
     }
 };
 

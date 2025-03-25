@@ -23,7 +23,8 @@ export class SpasManager {
         this.today = {
             schedule2: ['15:00'],
             clockInTime: '', //上班打卡時間
-            desendTime: '' //SPAS系統上計算應下班時間
+            desendTime: '', //SPAS系統上計算應下班時間
+            endDate: timeToDate("18:30"), //ALMA 應下班時間
         };
 
         this.signInDialog = {
@@ -114,6 +115,15 @@ export class SpasManager {
         console.log('jobRunnerID cleared.');
     }
 
+    calTodayEndTime() {
+        // endTime預設 +1分鐘
+        this.today.endDate = timeToDate(this.s.workEndTime, 1);
+        if (this.today.desendTime != '') {
+            if (this.s.useSpasEndTime) this.today.endDate = timeToDate(this.today.desendTime, 1);
+            if (this.today.endDate < timeToDate(this.today.desendTime, 1)) this.today.endDate = timeToDate(this.today.desendTime, 1);
+        }
+    }
+
     async _jobRunner() {
         let date = new Date();
         let updateWorkItem = false;
@@ -128,15 +138,15 @@ export class SpasManager {
             this.calWorkPlan();
         }
         // 特定時間執行 1 --------------------------------------------------------------------
-        let scheduleTime1 = ['10:00', '12:03', '13:30', '13:32', '15:00', '17:30', '18:30'];
+        let scheduleTime1 = ['08:00', '10:00', '12:03', '13:30', '13:32', '15:00', '17:30', '18:30', '20:00', '22:00'];
         if (scheduleTime1.includes(date.myGetTime())) {
             console.log('schedule1: refresh workItem.');
             await this.getWorkItemsFromSpas();
-            //await this.calWorkPlan();
+            this.calWorkPlan();
         }
 
         // 特定時間執行 2 --------------------------------------------------------------------
-        let scheduleTime2 = ['16:40', '16:50', '17:00', '17:10', '17:20', '17:30'];
+        let scheduleTime2 = ['15:00', '16:00', '16:40', '16:50', '17:00', '17:10', '17:20', '17:30',  '17:50'];
         if (scheduleTime2.includes(date.myGetTime())) {
             console.log(`schedule2: get clockin and desend Time. (clockInTime:${this.today.clockInTime})`);
             if (this.today.clockInTime != null) {
@@ -167,13 +177,9 @@ export class SpasManager {
         }
 
         // 不在工作時間內 --------------------------------------------------------------------
-        // 起始時間提早1分鐘, 結束時間延後2分鐘
-        let endTime = timeToDate(this.s.workEndTime, 1);
-        if (this.today.desendTime != '') {
-            if (endTime < timeToDate(this.today.desendTime, 1)) endTime = timeToDate(this.today.desendTime, 1);
-        }
-        console.log(`endTime:${endTime} | desendTime:${this.today.desendTime}`);
-        if (date < timeToDate(this.s.workStartTime, -1) || date > endTime || (date > new Date().setHours(12, 1, 0) && date < new Date().setHours(13, 29, 0)) || date.getDay() == 0 || date.getDay() == 6) {
+        this.calTodayEndTime(); // 計算本日下班時間
+        console.log(`today.endDate:${this.today.endDate} | today.desendTime:${this.today.desendTime}`);
+        if (date < timeToDate(this.s.workStartTime, -1) || date > this.today.endDate || (date > new Date().setHours(12, 1, 0) && date < new Date().setHours(13, 29, 0)) || date.getDay() == 0 || date.getDay() == 6) {
             //pause all ongoingWorkItems
             //console.log(`_jobRunner: not in working time, pause all workitems. ${this.s.workStartTime}~${endTime}`);
             for (const i of this.onGoingWorkItems) {
@@ -445,16 +451,12 @@ export class SpasManager {
         if (!this.s.workStartTime) this.s = await SPAS.getAllSettings(); // 預防動態更新時 this.s內容丟失
 
         let date = new Date();
-        //let schedule2 = timeToDate('16:50');
-        let schedule2 = timeToDate(this.s.workEndTime, 1);
 
         let workStartDate = timeToDate(this.s.workStartTime);
         workStartDate = date < workStartDate ? workStartDate : date;
 
-        let workEndDate = date >= schedule2 ? timeToDate(this.s.workEndTime, 1) : schedule2;
-        if (this.today.clockInTime != null) {
-            if (workEndDate < timeToDate(this.today.desendTime, 1)) workEndDate = timeToDate(this.today.desendTime, 1);
-        }
+        this.calTodayEndTime(); // 計算本日下班時間 this.today.endDate
+        let workEndDate = this.today.endDate;
 
         // workHoursAvalible: 今天可以工作的時數
         let workHoursAvalible = workEndDate - workStartDate;

@@ -16,6 +16,7 @@
                 <q-input v-model="settings.password" label="密碼" type="password" />
                 <q-input v-model="settings.workStartTime" label="預設上班時間 (HH:MM)" mask="##:##" />
                 <q-input v-model="settings.workEndTime" label="預設下班時間 (HH:MM)" mask="##:##" />
+                <q-toggle v-model="settings.useSpasEndTime" label="使用 SPAS 下班時間" />
             </q-card-section>
 
             <q-card-actions align="right">
@@ -37,7 +38,8 @@ const settings = reactive({
     workId: '',
     password: '',
     workStartTime: '',
-    workEndTime: ''
+    workEndTime: '',
+    useSpasEndTime: false
 });
 
 // 初始化設定值
@@ -47,6 +49,7 @@ onMounted(() => {
     settings.password = sm.s.signIn.password;
     settings.workStartTime = sm.s.workStartTime;
     settings.workEndTime = sm.s.workEndTime;
+    settings.useSpasEndTime = sm.s.useSpasEndTime;
 });
 
 // 儲存設定
@@ -59,12 +62,14 @@ async function saveSettings() {
     await SPAS.set('signIn.password', settings.password);
     await SPAS.set('workStartTime', settings.workStartTime);
     await SPAS.set('workEndTime', settings.workEndTime);
+    await SPAS.set('useSpasEndTime', settings.useSpasEndTime);
 
     // 更新 spasManager 中的設定
     sm.s.signIn.workId = settings.workId;
     sm.s.signIn.password = settings.password;
     sm.s.workStartTime = settings.workStartTime;
     sm.s.workEndTime = settings.workEndTime;
+    sm.s.useSpasEndTime = settings.useSpasEndTime;
 
     // 如果帳號或密碼變更，重新登入以獲取新 token
     if (isCredentialsChanged) {
