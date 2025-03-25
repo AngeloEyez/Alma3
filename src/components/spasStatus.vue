@@ -2,19 +2,12 @@
     <q-card flat bordered>
         <q-card-section class="bg-light-blue-8 text-white q-py-xs">
             <div class="row no-wrap items-center q-gutter-x-md">
-
                 <div class="col row wrap q-gutter-x-md q-gutter-y-xs">
-                    <!-- 第一行 -->
                     <div class="col-auto text-caption">
                         <q-icon name="login" size="xs" class="q-mr-xs" />
                         上班: {{ sm.today.clockInTime || '--:--' }}
                     </div>
-                    <div class="col-auto text-caption">
-                        <q-icon name="schedule" size="xs" class="q-mr-xs" />
-                        SPAS自動暫停: {{ sm.today.desendTime || '--:--' }}
-                    </div>
-
-                    <!-- 第二行 -->
+                    <q-separator vertical dark />
                     <div class="col-auto text-caption">
                         <q-icon name="access_time" size="xs" class="q-mr-xs" />
                         預設上班: {{ sm.s.workStartTime }}
@@ -23,8 +16,14 @@
                         <q-icon name="access_time" size="xs" class="q-mr-xs" />
                         預設下班: {{ sm.s.workEndTime }}
                     </div>
+
                     <div class="col-auto text-caption">
-                        <q-icon name="exit_to_app" size="xs" class="q-mr-xs" />
+                        <q-icon name="timer_off" size="xs" class="q-mr-xs" />
+                        SPAS自動暫停: {{ sm.today.desendTime || '--:--' }}
+                    </div>
+                    <q-separator vertical dark />
+                    <div class="col-auto text-caption">
+                        <q-icon name="logout" size="xs" class="q-mr-xs" />
                         今日Alma下班: {{ sm.today.endDate ? sm.today.endDate.Format('hh:mm') : '--:--' }}
                     </div>
                     <div class="col-auto text-caption q-ml-auto">
@@ -42,11 +41,11 @@
             <div class="row q-gutter-sm">
                 <q-input v-model="sm.today.schedule2" label="today.schedule2" dense class="col-12 col-sm-6" />
                 <div class="row q-gutter-xs">
-                    <q-btn size="sm" color="grey-7" label="test" dense no-caps @click="test" />
-                    <q-btn size="sm" color="grey-7" label="getWorkItemsFromSpas" dense no-caps @click="sm.getWorkItemsFromSpas()" />
-                    <q-btn size="sm" color="grey-7" label="calWorkPlanByWorkItem" dense no-caps @click="sm.calWorkPlanByWorkItem(8, 3)" />
-                    <q-btn size="sm" color="grey-7" label="approveItems" dense no-caps @click="sm.approveItems" />
-                    <q-btn size="sm" color="grey-7" label="finishItems" dense no-caps @click="sm.finishItems" />
+                    <q-btn color="grey-7" label="test" dense no-caps @click="test" />
+                    <q-btn color="grey-7" label="getWorkItemsFromSpas" dense no-caps @click="sm.getWorkItemsFromSpas()" />
+                    <q-btn color="grey-7" label="calWorkPlanByWorkItem" dense no-caps @click="sm.calWorkPlanByWorkItem(4)" />
+                    <q-btn color="grey-7" label="approveItems" dense no-caps @click="sm.approveItems" />
+                    <q-btn color="grey-7" label="finishItems" dense no-caps @click="sm.finishItems" />
                 </div>
             </div>
         </q-card-section>

@@ -157,6 +157,7 @@ export class SpasManager {
         }
 
         // 特定時間執行 2 --------------------------------------------------------------------
+        // 取得 上班時間，SPAS系統於 16:40 左右抓取上班時間
         let scheduleTime2 = ['15:00', '16:00', '16:40', '16:50', '17:00', '17:10', '17:20', '17:30', '17:50'];
         if (scheduleTime2.includes(date.myGetTime())) {
             console.log(`schedule2: get clockin and desend Time. (clockInTime:${this.today.clockInTime})`);
