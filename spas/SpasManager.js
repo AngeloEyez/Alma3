@@ -21,7 +21,6 @@ export class SpasManager {
         this.devModeView = process.env.NODE_ENV !== 'production';
 
         this.today = {
-            schedule2: ['15:00'],
             clockInTime: '', //上班打卡時間
             desendTime: '', //SPAS系統上計算應下班時間
             startTime: '', // 紀錄今日Alma開始工作時間

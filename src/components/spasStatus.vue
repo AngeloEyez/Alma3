@@ -51,7 +51,7 @@
     <q-card v-if="sm.devModeView" flat bordered class="q-mt-xs">
         <q-card-section class="q-py-xs q-px-md">
             <div class="row q-gutter-sm">
-                <q-input v-model="sm.today.schedule2" label="today.schedule2" dense class="col-12 col-sm-6" />
+               
                 <div class="row q-gutter-xs">
                     <q-btn color="grey-7" label="test" dense no-caps @click="test" />
                     <q-btn color="grey-7" label="getWorkItemsFromSpas" dense no-caps @click="sm.getWorkItemsFromSpas()" />
