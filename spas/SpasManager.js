@@ -24,6 +24,7 @@ export class SpasManager {
             schedule2: ['15:00'],
             clockInTime: '', //上班打卡時間
             desendTime: '', //SPAS系統上計算應下班時間
+            startTime: '', // 紀錄今日Alma開始工作時間
             endDate: timeToDate('18:30'), //ALMA 應下班時間
             isWorking: false, // 是否正在工作，flag for 下班暫停任務下班暫停任務
             isWorkDay: true // 本日需要上工
@@ -179,6 +180,11 @@ export class SpasManager {
             console.log('Start a new Day...');
             this.today.desendTime = '';
             this.today.clockInTime = '';
+            this.today.startTime = '';
+            this.today.endDate = timeToDate(this.s.workEndTime, 1);
+            this._checkIsWorkDay();
+            this.isWorking = false;
+
             // for (const i of this.onGoingWorkItems) {
             //   //if (!(await i.extend())) {
             //   await i.pause();
@@ -190,7 +196,6 @@ export class SpasManager {
         console.log(`today.endDate:${this.today.endDate} | today.desendTime:${this.today.desendTime}`);
 
         if (!this.today.isWorkDay || date < timeToDate(this.s.workStartTime, -1) || date > this.today.endDate || (date > new Date().setHours(12, 1, 0) && date < ate().setHours(13, 29, 0))) {
-
             // 不在工作時間內 --------------------------------------------------------------------
             //pause all ongoingWorkItems
             //console.log(`_jobRunner: not in working time, pause all workitems. ${this.s.workStartTime}~${endTime}`);
@@ -203,6 +208,11 @@ export class SpasManager {
             this.today.isWorking = false;
         } else {
             // 在工作時間內 --------------------------------------------------------------------
+
+            //今日開始工作時，紀錄開工時間紀錄開工時間
+            if (!this.today.isWorking) {
+                this.today.startTime = date.myGetTime();
+            }
             this.today.isWorking = true;
 
             // 更新 workPlan (每日剛開始工作時)
