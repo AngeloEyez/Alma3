@@ -66,8 +66,8 @@ export function timeToDate(timeString, minute_delta=0) {
 /**
  * 將 "07:00" 字串轉加上 m 分鐘.
  * @param {String} timeString 時間字串如:"07:00"
- * @param {int} m 分鐘數
- * @returns {String} 時間字串如:"07:00"
+ * @param {int} m 分鐘數如 -1如 -1
+ * @returns {String} 時間字串如:"06:59"
  */
 export function addMinutes(timeString, m) {
   let d = new Date();

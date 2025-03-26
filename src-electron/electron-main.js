@@ -91,7 +91,6 @@ function createWindow() {
     mainWindow.on('resize', () => {
         if (!mainWindow.isMaximized()) {
             const size = mainWindow.getSize();
-            console.log('window size changed:', size);
             sc.settings.set('windowSize', {
                 width: size[0],
                 height: size[1]

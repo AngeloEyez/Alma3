@@ -24,7 +24,9 @@ export class SpasManager {
             schedule2: ['15:00'],
             clockInTime: '', //上班打卡時間
             desendTime: '', //SPAS系統上計算應下班時間
-            endDate: timeToDate('18:30') //ALMA 應下班時間
+            endDate: timeToDate('18:30'), //ALMA 應下班時間
+            isWorking: false, // 是否正在工作，flag for 下班暫停任務下班暫停任務
+            isWorkDay: true // 本日需要上工
         };
 
         this.signInDialog = {
@@ -36,18 +38,6 @@ export class SpasManager {
         };
 
         this.workItemMaxRatio = 0.995;
-    }
-
-    // 切換開發模式視圖
-    toggleDevModeView() {
-        this.devModeView = !this.devModeView;
-        return this.devModeView;
-    }
-
-    // 設置開發模式視圖
-    setDevModeView(value) {
-        this.devModeView = !!value;
-        return this.devModeView;
     }
 
     async do(event, msg) {
@@ -126,7 +116,7 @@ export class SpasManager {
         console.log('jobRunnerID cleared.');
     }
 
-    calTodayEndTime() {
+    _calTodayEndTime() {
         // endTime預設 +1分鐘
         this.today.endDate = timeToDate(this.s.workEndTime, 1);
         if (this.today.desendTime != '') {
@@ -135,11 +125,18 @@ export class SpasManager {
         }
     }
 
+    _checkIsWorkDay() {
+        let date = new Date();
+
+        // 預設 周六日不上班
+        this.today.isWorkDay = date.getDay() == 0 || date.getDay() == 6;
+    }
+
     async _jobRunner() {
         let date = new Date();
         let updateWorkItem = false;
 
-        // 特定時間執行 0 -------------------------------------------------------------------- [改成每日下班後10分鐘]
+        // 特定時間執行 0 -------------------------------------------------------------------- [TODO:改成每日下班後10分鐘]
         let scheduleTime0 = ['23:05'];
         if (scheduleTime0.includes(date.myGetTime())) {
             console.log('schedule0: Check FINISH and APPROVE');
@@ -177,7 +174,8 @@ export class SpasManager {
         }
 
         // 特定時間執行 3 A new Day --------------------------------------------------------------------
-        if (this.s.workStartTime == date.myGetTime()) {
+        // Start a new Day, 提早1分鐘提早1分鐘
+        if (addMinutes(this.s.workStartTime, -1) == date.myGetTime()) {
             console.log('Start a new Day...');
             this.today.desendTime = '';
             this.today.clockInTime = '';
@@ -188,18 +186,25 @@ export class SpasManager {
             // }
         }
 
-        // 不在工作時間內 --------------------------------------------------------------------
-        this.calTodayEndTime(); // 計算本日下班時間
+        this._calTodayEndTime(); // 計算本日下班時間
         console.log(`today.endDate:${this.today.endDate} | today.desendTime:${this.today.desendTime}`);
-        if (date < timeToDate(this.s.workStartTime, -1) || date > this.today.endDate || (date > new Date().setHours(12, 1, 0) && date < new Date().setHours(13, 29, 0)) || date.getDay() == 0 || date.getDay() == 6) {
+
+        if (!this.today.isWorkDay || date < timeToDate(this.s.workStartTime, -1) || date > this.today.endDate || (date > new Date().setHours(12, 1, 0) && date < ate().setHours(13, 29, 0))) {
+
+            // 不在工作時間內 --------------------------------------------------------------------
             //pause all ongoingWorkItems
             //console.log(`_jobRunner: not in working time, pause all workitems. ${this.s.workStartTime}~${endTime}`);
-            for (const i of this.onGoingWorkItems) {
-                i.pause();
+            if (this.today.isWorking) {
+                for (const i of this.onGoingWorkItems) {
+                    i.pause();
+                }
+                this.getWorkItemsFromSpas();
             }
-            this.getWorkItemsFromSpas();
-            // 在工作時間內 --------------------------------------------------------------------
+            this.today.isWorking = false;
         } else {
+            // 在工作時間內 --------------------------------------------------------------------
+            this.today.isWorking = true;
+
             // 更新 workPlan (每日剛開始工作時)
             if (this._workPlanUpdateTime.getDate() != date.getDate()) {
                 console.log(`Calculate today's workplan`);
@@ -467,7 +472,7 @@ export class SpasManager {
         let workStartDate = timeToDate(this.s.workStartTime);
         workStartDate = date < workStartDate ? workStartDate : date;
 
-        this.calTodayEndTime(); // 計算本日下班時間 this.today.endDate
+        this._calTodayEndTime(); // 計算本日下班時間 this.today.endDate
         let workEndDate = this.today.endDate;
 
         // workHoursAvalible: 今天可以工作的時數
@@ -774,6 +779,18 @@ export class SpasManager {
 
         SPAS.set('simultaneousGroup', groups);
         this.s.simultaneousGroup = groups;
+    }
+
+    // 切換開發模式視圖
+    toggleDevModeView() {
+        this.devModeView = !this.devModeView;
+        return this.devModeView;
+    }
+
+    // 設置開發模式視圖
+    setDevModeView(value) {
+        this.devModeView = !!value;
+        return this.devModeView;
     }
 }
 
