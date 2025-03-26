@@ -17,7 +17,7 @@
                         ALMA上班: {{ sm.today.startTime || '--:--' }}
                     </div>
                     <div class="col-auto">
-                        <q-toggle v-model="toggleWorkDay" :color="toggleWorkDay ? 'green' : 'grey'" :label="toggleWorkDay ? '工作日' : '休息日'" size="sm" icon="event_available" @update:model-value="handleToggleWorkDay" />
+                        <q-toggle v-model="toggleWorkDay" :color="toggleWorkDay ? 'positive' : 'grey'" :label="toggleWorkDay ? '工作日' : '休息日'" size="sm" icon="event_available" @update:model-value="handleToggleWorkDay" />
                     </div>
                     <div class="col text-caption text-right">
                         <q-icon name="favorite" size="xs" class="q-mr-xs" />
@@ -28,11 +28,11 @@
                 <!-- 第二列 -->
                 <div class="col-12 row items-center q-gutter-x-xs">
                     <div class="col-2 text-caption">
-                        <q-icon name="access_time" size="xs" class="q-mr-xs" />
+                        <q-icon name="access_time" size="xs" class="q-mr-xs" v-bind="!sm.s.useSpasEndTime ? { color: 'info' } : {}"/>
                         預設下班: {{ sm.s.workEndTime }}
                     </div>
                     <div class="col-2 text-caption">
-                        <q-icon name="logout" size="xs" class="q-mr-xs" />
+                        <q-icon name="logout" size="xs" class="q-mr-xs" v-bind="sm.s.useSpasEndTime ? { color: 'info' } : {}"/>
                         今日下班: {{ sm.today.desendTime || '--:--' }}
                     </div>
                     <div class="col-2 text-caption">
@@ -112,7 +112,7 @@ function handleToggleWorkDay() {
             });
         })
         .onCancel(() => {
-          toggleWorkDay.value = sm.today.isWorkDay;// 取消時不改變 toggleWorkDay 的值
+            toggleWorkDay.value = sm.today.isWorkDay; // 取消時不改變 toggleWorkDay 的值
         });
 }
 
