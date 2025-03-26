@@ -17,7 +17,7 @@
                         ALMA上班: {{ sm.today.startTime || '--:--' }}
                     </div>
                     <div class="col-auto">
-                        <q-toggle v-model="sm.today.isWorkDay" :color="sm.today.isWorkDay ? 'green' : 'grey'" :label="sm.today.isWorkDay ? '工作日' : '休息日'" size="sm" icon="event_available" @update:model-value="handleToggleWorkDay" />
+                        <q-toggle v-model="toggleWorkDay" :color="toggleWorkDay ? 'green' : 'grey'" :label="toggleWorkDay ? '工作日' : '休息日'" size="sm" icon="event_available" @update:model-value="handleToggleWorkDay" />
                     </div>
                     <div class="col text-caption text-right">
                         <q-icon name="favorite" size="xs" class="q-mr-xs" />
@@ -40,7 +40,7 @@
                         ALMA下班: {{ sm.today.endDate ? sm.today.endDate.Format('hh:mm') : '--:--' }}
                     </div>
                     <div class="col-auto">
-                        <q-btn color="grey" size="sm" label="功能待開發" dense no-caps disabled />
+                        <!-- <q-btn color="grey" size="sm" label="功能待開發" dense no-caps disabled /> -->
                     </div>
                 </div>
             </div>
@@ -51,7 +51,6 @@
     <q-card v-if="sm.devModeView" flat bordered class="q-mt-xs">
         <q-card-section class="q-py-xs q-px-md">
             <div class="row q-gutter-sm">
-               
                 <div class="row q-gutter-xs">
                     <q-btn color="grey-7" label="test" dense no-caps @click="test" />
                     <q-btn color="grey-7" label="getWorkItemsFromSpas" dense no-caps @click="sm.getWorkItemsFromSpas()" />
@@ -73,17 +72,25 @@
 </template>
 
 <script setup>
-import { inject, computed, ref } from 'vue';
+import { inject, computed, ref, onMounted } from 'vue';
 import { calculateBusinessDays, toPercent, delay, timeToDate, addMinutes } from 'app/spas/utils.js';
 import { useQuasar } from 'quasar';
 
 const sm = inject('spasManager');
 const $q = useQuasar();
 
+// 新增變數來綁定 toggle
+const toggleWorkDay = ref(sm.today.isWorkDay);
+
+// 在組件加載時設置 toggleWorkDay 的值
+onMounted(() => {
+    toggleWorkDay.value = sm.today.isWorkDay;
+});
+
 // 工作日狀態切換
-function handleToggleWorkDay(value) {
-    const actionText = value ? '設為工作日' : '設為休息日';
-    const statusText = value ? '工作日' : '休息日';
+function handleToggleWorkDay() {
+    const actionText = toggleWorkDay.value ? '設為工作日' : '設為休息日';
+    const statusText = toggleWorkDay.value ? '工作日' : '休息日';
 
     $q.dialog({
         title: '確認',
@@ -92,6 +99,10 @@ function handleToggleWorkDay(value) {
         persistent: true
     })
         .onOk(() => {
+            // 反轉 sm.today.isWorkDay 的值
+            sm.today.isWorkDay = !sm.today.isWorkDay;
+            // 更新 toggleWorkDay 的值
+            toggleWorkDay.value = sm.today.isWorkDay;
             sm.jobRunner();
             $q.notify({
                 message: `已將今天設為${statusText}`,
@@ -101,7 +112,7 @@ function handleToggleWorkDay(value) {
             });
         })
         .onCancel(() => {
-            sm.today.isWorkDay = !value;
+          toggleWorkDay.value = sm.today.isWorkDay;// 取消時不改變 toggleWorkDay 的值
         });
 }
 

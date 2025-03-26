@@ -197,7 +197,7 @@ export class SpasManager {
           this.today.isWorkDay: ${this.today.isWorkDay}
           this.today.isWorking: ${this.today.isWorking}`);
 
-        if (!this.today.isWorkDay || date < timeToDate(this.s.workStartTime, -1) || date > this.today.endDate || (date > new Date().setHours(12, 1, 0) && date < ate().setHours(13, 29, 0))) {
+        if (!this.today.isWorkDay || date < timeToDate(this.s.workStartTime, -1) || date > this.today.endDate || (date > new Date().setHours(12, 1, 0) && date < new Date().setHours(13, 29, 0))) {
             // 不在工作時間內 --------------------------------------------------------------------
             //pause all ongoingWorkItems
             //console.log(`jobRunner: not in working time, pause all workitems. ${this.s.workStartTime}~${endTime}`);
