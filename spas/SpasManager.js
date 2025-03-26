@@ -102,13 +102,13 @@ export class SpasManager {
                 this.today.desendTime = t[0] + ':' + t[1]; // "17:38"
                 console.log(`更更新上班時間: ${this.today.clockInTime},工作截止時間: ${this.today.desendTime}`);
                 this.calWorkPlan();
-                this._jobRunner();
+                this.jobRunner();
             } catch (e) {
                 console.log(`getClockInData Fail: ${e}, res:`, res);
             }
         });
 
-        this.jobRunnerID = setInterval(this._jobRunner.bind(this), 55000); // 55秒
+        this.jobRunnerID = setInterval(this.jobRunner.bind(this), 55000); // 55秒
         console.log('spasManager Started');
     }
 
@@ -133,7 +133,7 @@ export class SpasManager {
         this.today.isWorkDay = date.getDay() == 0 || date.getDay() == 6;
     }
 
-    async _jobRunner() {
+    async jobRunner() {
         let date = new Date();
         let updateWorkItem = false;
 
@@ -193,13 +193,16 @@ export class SpasManager {
         }
 
         this._calTodayEndTime(); // 計算本日下班時間
-        console.log(`today.endDate:${this.today.endDate} | today.desendTime:${this.today.desendTime}`);
+        console.log(`today.endDate:${this.today.endDate}
+          today.desendTime:${this.today.desendTime}
+          this.today.isWorkDay: ${this.today.isWorkDay}
+          this.today.isWorking: ${this.today.isWorking}`);
 
         if (!this.today.isWorkDay || date < timeToDate(this.s.workStartTime, -1) || date > this.today.endDate || (date > new Date().setHours(12, 1, 0) && date < ate().setHours(13, 29, 0))) {
             // 不在工作時間內 --------------------------------------------------------------------
             //pause all ongoingWorkItems
-            //console.log(`_jobRunner: not in working time, pause all workitems. ${this.s.workStartTime}~${endTime}`);
-            if (this.today.isWorking) {
+            //console.log(`jobRunner: not in working time, pause all workitems. ${this.s.workStartTime}~${endTime}`);
+            if (this.today.isWorking || this.onGoingWorkItems3.length > 0) {
                 for (const i of this.onGoingWorkItems) {
                     i.pause();
                 }
@@ -231,7 +234,7 @@ export class SpasManager {
 
             //     //當日targetHours用完就暫停該item
             //     if (p.todayTargetHours <= 0 || i.ratio >= 0.99) {
-            //         //console.log(`_jobRunner: pasue workitem due to p.todayTargetHours:${p.todayTargetHours} | i.ratio:${i.ratio}`);
+            //         //console.log(`jobRunner: pasue workitem due to p.todayTargetHours:${p.todayTargetHours} | i.ratio:${i.ratio}`);
             //         if (await i.pause()) {
             //             console.log(`job pause done (${p.name})`);
             //             updateWorkItem = true;

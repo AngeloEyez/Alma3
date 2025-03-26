@@ -1,34 +1,46 @@
 <template>
     <q-card flat bordered>
         <q-card-section class="bg-light-blue-8 text-white q-py-xs">
-            <div class="row no-wrap items-center q-gutter-x-md">
-                <div class="col row wrap q-gutter-x-md q-gutter-y-xs">
-                    <div class="col-auto text-caption">
-                        <q-icon name="login" size="xs" class="q-mr-xs" />
-                        上班: {{ sm.today.clockInTime || '--:--' }}
-                    </div>
-                    <q-separator vertical dark />
-                    <div class="col-auto text-caption">
+            <div class="row q-gutter-y-xs">
+                <!-- 第一列 -->
+                <div class="col-12 row items-center q-gutter-x-xs">
+                    <div class="col-2 text-caption">
                         <q-icon name="access_time" size="xs" class="q-mr-xs" />
                         預設上班: {{ sm.s.workStartTime }}
                     </div>
-                    <div class="col-auto text-caption">
+                    <div class="col-2 text-caption">
+                        <q-icon name="login" size="xs" class="q-mr-xs" />
+                        今日打卡: {{ sm.today.clockInTime || '--:--' }}
+                    </div>
+                    <div class="col-2 text-caption">
+                        <q-icon name="play_arrow" size="xs" class="q-mr-xs" />
+                        ALMA上班: {{ sm.today.startTime || '--:--' }}
+                    </div>
+                    <div class="col-auto">
+                        <q-btn :color="sm.today.isWorkDay ? 'green' : 'grey'" size="sm" :label="sm.today.isWorkDay ? '工作日' : '休息日'" dense no-caps @click="toggleWorkDay" />
+                    </div>
+                    <div class="col text-caption text-right">
+                        <q-icon name="favorite" size="xs" class="q-mr-xs" />
+                        {{ sm._lastRunTime ? new Date(sm._lastRunTime).Format('hh:mm:ss') : '--:--' }}
+                    </div>
+                </div>
+
+                <!-- 第二列 -->
+                <div class="col-12 row items-center q-gutter-x-xs">
+                    <div class="col-2 text-caption">
                         <q-icon name="access_time" size="xs" class="q-mr-xs" />
                         預設下班: {{ sm.s.workEndTime }}
                     </div>
-
-                    <div class="col-auto text-caption">
-                        <q-icon name="timer_off" size="xs" class="q-mr-xs" />
-                        SPAS自動暫停: {{ sm.today.desendTime || '--:--' }}
-                    </div>
-                    <q-separator vertical dark />
-                    <div class="col-auto text-caption">
+                    <div class="col-2 text-caption">
                         <q-icon name="logout" size="xs" class="q-mr-xs" />
-                        今日Alma下班: {{ sm.today.endDate ? sm.today.endDate.Format('hh:mm') : '--:--' }}
+                        今日下班: {{ sm.today.desendTime || '--:--' }}
                     </div>
-                    <div class="col-auto text-caption q-ml-auto">
-                        <q-icon name="favorite" size="xs" class="q-mr-xs" />
-                        {{ sm._lastRunTime ? new Date(sm._lastRunTime).Format('hh:mm:ss') : '--:--' }}
+                    <div class="col-2 text-caption">
+                        <q-icon name="phonelink_erase" size="xs" class="q-mr-xs" />
+                        ALMA下班: {{ sm.today.endDate ? sm.today.endDate.Format('hh:mm') : '--:--' }}
+                    </div>
+                    <div class="col-auto">
+                        <q-btn color="grey" size="sm" label="功能待開發" dense no-caps disabled />
                     </div>
                 </div>
             </div>
@@ -61,19 +73,36 @@
 </template>
 
 <script setup>
-import { inject, computed } from 'vue';
+import { inject, computed, ref } from 'vue';
 import { calculateBusinessDays, toPercent, delay, timeToDate, addMinutes } from 'app/spas/utils.js';
+import { useQuasar } from 'quasar';
 
 const sm = inject('spasManager');
+const $q = useQuasar();
+
+// 工作日狀態切換
+function toggleWorkDay() {
+    const actionText = sm.today.isWorkDay ? '設為休息日' : '設為工作日';
+    const statusText = sm.today.isWorkDay ? '休息日' : '工作日';
+
+    $q.dialog({
+        title: '確認',
+        message: `確定要將今天${actionText}嗎？`,
+        cancel: true,
+        persistent: true
+    }).onOk(() => {
+        sm.today.isWorkDay = !sm.today.isWorkDay;
+        sm.jobRunner();
+        $q.notify({
+            message: `已將今天設為${statusText}`,
+            color: 'positive',
+            position: 'top',
+            timeout: 1500
+        });
+    });
+}
 
 async function test() {
-    // for (const i of sm.onGoingWorkItems) {
-    //   let r = await i.extend();
-    //   console.log(r);
-    //   if (!r) {
-    //     console.log("pasue:" + (await i.pause()));
-    //   }
-    // }
     console.log(sm.workItems);
 }
 </script>
