@@ -17,7 +17,7 @@
                         ALMA上班: {{ sm.today.startTime || '--:--' }}
                     </div>
                     <div class="col-auto">
-                        <q-btn :color="sm.today.isWorkDay ? 'green' : 'grey'" size="sm" :label="sm.today.isWorkDay ? '工作日' : '休息日'" dense no-caps @click="toggleWorkDay" />
+                        <q-toggle v-model="sm.today.isWorkDay" :color="sm.today.isWorkDay ? 'green' : 'grey'" :label="sm.today.isWorkDay ? '工作日' : '休息日'" size="sm" icon="event_available" @update:model-value="handleToggleWorkDay" />
                     </div>
                     <div class="col text-caption text-right">
                         <q-icon name="favorite" size="xs" class="q-mr-xs" />
@@ -81,25 +81,28 @@ const sm = inject('spasManager');
 const $q = useQuasar();
 
 // 工作日狀態切換
-function toggleWorkDay() {
-    const actionText = sm.today.isWorkDay ? '設為休息日' : '設為工作日';
-    const statusText = sm.today.isWorkDay ? '休息日' : '工作日';
+function handleToggleWorkDay(value) {
+    const actionText = value ? '設為工作日' : '設為休息日';
+    const statusText = value ? '工作日' : '休息日';
 
     $q.dialog({
         title: '確認',
         message: `確定要將今天${actionText}嗎？`,
         cancel: true,
         persistent: true
-    }).onOk(() => {
-        sm.today.isWorkDay = !sm.today.isWorkDay;
-        sm.jobRunner();
-        $q.notify({
-            message: `已將今天設為${statusText}`,
-            color: 'positive',
-            position: 'top',
-            timeout: 1500
+    })
+        .onOk(() => {
+            sm.jobRunner();
+            $q.notify({
+                message: `已將今天設為${statusText}`,
+                color: 'positive',
+                position: 'top',
+                timeout: 1500
+            });
+        })
+        .onCancel(() => {
+            sm.today.isWorkDay = !value;
         });
-    });
 }
 
 async function test() {
