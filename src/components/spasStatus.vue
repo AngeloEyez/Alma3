@@ -16,8 +16,9 @@
                         <q-icon name="play_arrow" size="xs" class="q-mr-xs" />
                         ALMA上班: {{ sm.today.startTime || '--:--' }}
                     </div>
-                    <div class="col-auto">
+                    <div class="col-auto row items-center q-gutter-x-xs">
                         <q-toggle v-model="toggleWorkDay" :color="toggleWorkDay ? 'positive' : 'grey'" :label="toggleWorkDay ? '工作日' : '休息日'" size="sm" icon="event_available" @update:model-value="handleToggleWorkDay" />
+                        <spas-work-day-picker />
                     </div>
                     <div class="col text-caption text-right">
                         <q-icon name="favorite" size="xs" class="q-mr-xs" />
@@ -28,11 +29,11 @@
                 <!-- 第二列 -->
                 <div class="col-12 row items-center q-gutter-x-xs">
                     <div class="col-2 text-caption">
-                        <q-icon name="access_time" size="xs" class="q-mr-xs" v-bind="!sm.s.useSpasEndTime ? { color: 'info' } : {}"/>
+                        <q-icon name="access_time" size="xs" class="q-mr-xs" v-bind="!sm.s.useSpasEndTime ? { color: 'info' } : {}" />
                         預設下班: {{ sm.s.workEndTime }}
                     </div>
                     <div class="col-2 text-caption">
-                        <q-icon name="logout" size="xs" class="q-mr-xs" v-bind="sm.s.useSpasEndTime ? { color: 'info' } : {}"/>
+                        <q-icon name="logout" size="xs" class="q-mr-xs" v-bind="sm.s.useSpasEndTime ? { color: 'info' } : {}" />
                         今日下班: {{ sm.today.desendTime || '--:--' }}
                     </div>
                     <div class="col-2 text-caption">
@@ -72,9 +73,10 @@
 </template>
 
 <script setup>
-import { inject, computed, ref, onMounted } from 'vue';
+import { inject, computed, ref, onMounted, toRaw } from 'vue';
 import { calculateBusinessDays, toPercent, delay, timeToDate, addMinutes } from 'app/spas/utils.js';
 import { useQuasar } from 'quasar';
+import SpasWorkDayPicker from './spasWorkDayPicker.vue';
 
 const sm = inject('spasManager');
 const $q = useQuasar();
@@ -117,6 +119,7 @@ function handleToggleWorkDay() {
 }
 
 async function test() {
-    console.log(sm.workItems);
+    await sm.do('a', 'getSettings');
+    console.log(toRaw(sm.s));
 }
 </script>

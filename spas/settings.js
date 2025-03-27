@@ -40,6 +40,7 @@ const storeConfig = {
         disabledProject: [1696, 1697],
         simultaneousGroup: [],
         useSpasEndTime: false,
+        workDays: [], // 儲存工作日設定，格式為 YYYY/MM/DD 字串陣列
         windowSize: {
             width: 800,
             height: 600

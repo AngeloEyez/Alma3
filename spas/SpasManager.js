@@ -41,6 +41,10 @@ export class SpasManager {
     }
 
     async do(event, msg) {
+        if (arguments.length === 1) {
+            msg = event;
+            event = null;
+        }
         switch (msg) {
             case 'init': {
                 this.s = await SPAS.getAllSettings();
@@ -64,7 +68,9 @@ export class SpasManager {
                 break;
             }
             case 'getSettings': {
-                this.s = SPAS.getAllSettings();
+                this.s = await SPAS.getAllSettings();
+                return this.s;
+                break;
             }
             default: {
                 break;
@@ -127,9 +133,21 @@ export class SpasManager {
 
     _checkIsWorkDay() {
         let date = new Date();
+        let today = `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}`;
 
-        // 預設 周六日不上班
-        this.today.isWorkDay = date.getDay() == 0 || date.getDay() == 6;
+        // 獲取星期幾 (0是星期日, 6是星期六)
+        let dayOfWeek = date.getDay();
+
+        // 判斷是否在工作日列表中
+        let inWorkDaysArray = this.s.workDays && this.s.workDays.includes(today);
+
+        if (dayOfWeek === 0 || dayOfWeek === 6) {
+            // 週六日: 預設非工作日，但如果在 workDays 陣列中則為工作日
+            this.today.isWorkDay = inWorkDaysArray;
+        } else {
+            // 週一至週五: 預設工作日，但如果在 workDays 陣列中則為非工作日
+            this.today.isWorkDay = !inWorkDaysArray;
+        }
     }
 
     async jobRunner() {
