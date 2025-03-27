@@ -3,7 +3,7 @@
         <q-btn round flat dense size="sm" icon="event" @click="openPicker" />
 
         <q-dialog v-model="isPickerOpen" @hide="saveDateSettings">
-            <q-card style="min-width: 350px">
+            <q-card style="min-width: 330px">
                 <q-card-section class="bg-primary text-white row items-center q-py-xs">
                     <div class="text-h6">工作日設定</div>
                     <q-space />
@@ -11,12 +11,7 @@
                 </q-card-section>
 
                 <q-card-section>
-                    <q-date v-model="selectedDate" minimal flat bordered multiple @navigation="handleNavigation" calendar-type="gregorian" color="primary" :default-year-month="defaultYearMonth" :navigation-min-year-month="minYearMonth" class="q-pa-none" />
-
-                    <div class="row q-mt-sm q-gutter-sm justify-center">
-                        <q-btn color="primary" size="sm" icon="check" label="套用選擇" @click="applyDateSelection" />
-                        <q-btn color="grey-7" size="sm" icon="refresh" label="重置" @click="resetDateSelection" />
-                    </div>
+                    <q-date ref="datePickerRef" v-model="selectedDate" minimal flat bordered multiple @click="updateWorkDaysFromSelection" @navigation="handleNavigation" calendar-type="gregorian" color="primary" :default-year-month="defaultYearMonth" :navigation-min-year-month="minYearMonth" class="q-pa-none" />
                 </q-card-section>
             </q-card>
         </q-dialog>
@@ -24,7 +19,7 @@
 </template>
 
 <script setup>
-import { ref, inject, computed, onMounted, toRaw } from 'vue';
+import { ref, inject, computed, onMounted, toRaw, nextTick } from 'vue';
 import { useQuasar } from 'quasar';
 
 const sm = inject('spasManager');
@@ -33,7 +28,7 @@ const $q = useQuasar();
 const isPickerOpen = ref(false);
 const selectedDate = ref([]);
 const workDays = ref([]);
-const tempSelectedDate = ref([]); // 暫存選擇的日期，用於重置
+const datePickerRef = ref(null); // 創建對 q-date 的引用
 
 const currentView = ref({
     year: new Date().getFullYear(),
@@ -62,23 +57,6 @@ const isWeekend = dateStr => {
     const dateObj = new Date(dateStr.replaceAll('/', '-'));
     const dayOfWeek = dateObj.getDay();
     return dayOfWeek === 0 || dayOfWeek === 6; // 0是星期日，6是星期六
-};
-
-// 應用當前日期選擇，計算工作日變更
-const applyDateSelection = () => {
-    console.log('應用日期選擇', selectedDate.value);
-
-    // 先備份當前選擇
-    tempSelectedDate.value = [...selectedDate.value];
-
-    // 計算所有變更的工作日
-    updateWorkDaysFromSelection();
-};
-
-// 重置日期選擇為最後一次保存的狀態
-const resetDateSelection = () => {
-    console.log('重置日期選擇');
-    updateWorkDayInMonth(currentView.value);
 };
 
 // 根據選擇的日期更新工作日設定
@@ -143,9 +121,6 @@ const updateWorkDayInMonth = view => {
             selectedDate.value.push(dateStr);
         }
     }
-
-    // 備份選擇
-    tempSelectedDate.value = [...selectedDate.value];
 };
 
 // 判斷日期是否為工作日
@@ -196,8 +171,8 @@ const saveDateSettings = async () => {
 
 // 打開日期選擇器
 const openPicker = async () => {
-    await initDateSettings();
     isPickerOpen.value = true;
+    initDateSettings();
 };
 
 // 初始化日期設定
@@ -208,6 +183,11 @@ const initDateSettings = async () => {
         workDays.value = [...wD];
     } else {
         workDays.value = [];
+    }
+
+    await nextTick();
+    if (datePickerRef.value) {
+        datePickerRef.value.setCalendarTo(defaultYearMonth.value); // 使用引用調用 setCalendarTo
     }
 
     // 根據當前視圖更新工作日
