@@ -1,8 +1,8 @@
 {
-    "name": "alma3",
-    "version": "0.5.0",
+    "name": "alma",
+    "version": "1.0",
     "description": "Alma for SPAS 3",
-    "productName": "Alma3",
+    "productName": "Alma",
     "author": "AngeloEyez <gavenhuang@gmail.com>",
     "private": true,
     "scripts": {
