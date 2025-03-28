@@ -236,16 +236,12 @@ export class SpasManager {
 
             //今日開始工作時，紀錄開工時間紀錄開工時間
             if (!this.today.isWorking) {
+                console.log('今日開工...  ');
                 this.today.startTime = date.myGetTime();
-            }
-            this.today.isWorking = true;
-
-            // 更新 workPlan (每日剛開始工作時)
-            if (this._workPlanUpdateTime.getDate() != date.getDate()) {
-                console.log(`Calculate today's workplan`);
                 await this.getWorkItemsFromSpas();
                 await this.calWorkPlan();
             }
+            this.today.isWorking = true;
 
             // [SPAS3.0]
             // *把所有onGoing更新時間
@@ -846,7 +842,7 @@ class spasWorkItem {
             this.status = 1; // status=1 running
             rtn = true;
         }
-        console.log(`%c ${this.id} %c ${this.name} started : ${res.code} | ${res.msg}`, 'padding: 2px 1px; border-radius: 3px 0 0 3px; color: #fff; background: #606060; font-weight: bold;','padding: 2px 1px; border-radius: 0 3px 3px 0; color: #fff; background: #42c02e; font-weight: bold;');
+        console.log(`%c ${this.id} %c ${this.name} started : ${res.code} | ${res.msg}`, 'padding: 2px 1px; border-radius: 3px 0 0 3px; color: #fff; background: #606060; font-weight: bold;', 'padding: 2px 1px; border-radius: 0 3px 3px 0; color: #fff; background: #42c02e; font-weight: bold;');
         return rtn;
     }
 
@@ -860,7 +856,7 @@ class spasWorkItem {
             this.status = 2; // status=2 paused
             rtn = true;
         }
-        console.log(`%c ${this.id} %c ${this.name} pasued : ${res.code} | ${res.msg}`,'padding: 2px 1px; border-radius: 3px 0 0 3px; color: #fff; background: #606060; font-weight: bold;','padding: 2px 1px; border-radius: 0 3px 3px 0; color: #fff; background: #42c02e; font-weight: bold;');
+        console.log(`%c ${this.id} %c ${this.name} pasued : ${res.code} | ${res.msg}`, 'padding: 2px 1px; border-radius: 3px 0 0 3px; color: #fff; background: #606060; font-weight: bold;', 'padding: 2px 1px; border-radius: 0 3px 3px 0; color: #fff; background: #42c02e; font-weight: bold;');
         return rtn;
     }
 
