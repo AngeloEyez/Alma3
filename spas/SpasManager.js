@@ -96,22 +96,9 @@ export class SpasManager {
             });
         }
 
-        //await this.calWorkPlan(); // 計算platforms todayTargetHours
-
-        console.log('start: get clockin and desend Time');
-        SPAS.do('getClockInData').then(res => {
-            console.log('getClockInData:', res);
-            this.today.clockInTime = res.inTime;
-            try {
-                let t = res.dsendTime.split(' ')[1].split(':'); //dsendTime: "2022-10-03 17:38:00"
-                this.today.desendTime = t[0] + ':' + t[1]; // "17:38"
-                console.log(`更更新上班時間: ${this.today.clockInTime},工作截止時間: ${this.today.desendTime}`);
-                this.calWorkPlan();
-                this.jobRunner();
-            } catch (e) {
-                console.log(`getClockInData Fail: ${e}, res:`, res);
-            }
-        });
+        // 等待 _getClockInTime 完全完成後再繼續
+        await this._getClockInTime();
+        this.jobRunner();
 
         this.jobRunnerID = setInterval(this.jobRunner.bind(this), 55000); // 55秒
         console.log('spasManager Started');
@@ -150,6 +137,36 @@ export class SpasManager {
         }
     }
 
+    // 取得上下班時間
+    async _getClockInTime() {
+        console.log(`Checking clockin and desend Time (clockInTime:${this.today.clockInTime})`);
+        if (this.today.clockInTime == '' || this.today.clockInTime == null) {
+            // 返回 Promise，確保所有操作完成後才解析
+            return new Promise(resolve => {
+                SPAS.do('getClockInData')
+                    .then(async res => {
+                        this.today.clockInTime = res.inTime;
+                        try {
+                            let t = res.dsendTime.split(' ')[1].split(':'); //dsendTime: "2022-10-03 17:38:00"
+                            this.today.desendTime = t[0] + ':' + t[1]; // "17:38"
+                            console.log(`更新上班時間: ${this.today.clockInTime},工作截止時間: ${this.today.desendTime}`);
+                            await this.calWorkPlan();
+                            resolve(true);
+                        } catch (e) {
+                            console.log(`getClockInData Fail: ${e}, res:`, res);
+                            resolve(false);
+                        }
+                    })
+                    .catch(err => {
+                        console.log(`getClockInData 請求失敗: ${err}`);
+                        resolve(false);
+                    });
+            });
+        } else {
+            return Promise.resolve(false); // 直接返回解析的 Promise
+        }
+    }
+
     async jobRunner() {
         let date = new Date();
         let updateWorkItem = false;
@@ -173,22 +190,9 @@ export class SpasManager {
 
         // 特定時間執行 2 --------------------------------------------------------------------
         // 取得 上班時間，SPAS系統於 16:40 左右抓取上班時間
-        let scheduleTime2 = ['15:00', '16:00', '16:40', '16:50', '17:00', '17:10', '17:20', '17:30', '17:50'];
+        let scheduleTime2 = ['15:00', '16:00', '16:20', '16:40', '16:50', '17:00', '17:15', '17:25', '17:40', '17:50', '18:05', '18:28', '19:20', '20:30', '21:00', '22:10'];
         if (scheduleTime2.includes(date.myGetTime())) {
-            console.log(`schedule2: get clockin and desend Time. (clockInTime:${this.today.clockInTime})`);
-            if (this.today.clockInTime != null) {
-                SPAS.do('getClockInData').then(res => {
-                    this.today.clockInTime = res.inTime;
-                    try {
-                        let t = res.dsendTime.split(' ')[1].split(':'); //dsendTime: "2022-10-03 17:38:00"
-                        this.today.desendTime = t[0] + ':' + t[1]; // "17:38"
-                        console.log(`更更新上班時間: ${this.today.clockInTime},工作截止時間: ${this.today.desendTime}`);
-                        this.calWorkPlan();
-                    } catch (e) {
-                        console.log(`getClockInData Fail: ${e}, res:`, res);
-                    }
-                });
-            }
+            await this._getClockInTime();
         }
 
         // 特定時間執行 3 A new Day --------------------------------------------------------------------
@@ -201,6 +205,7 @@ export class SpasManager {
             this.today.endDate = timeToDate(this.s.workEndTime, 1);
             this._checkIsWorkDay();
             this.isWorking = false;
+            this._getClockInTime();
 
             // for (const i of this.onGoingWorkItems) {
             //   //if (!(await i.extend())) {
@@ -210,10 +215,10 @@ export class SpasManager {
         }
 
         this._calTodayEndTime(); // 計算本日下班時間
-        console.log(`today.endDate:${this.today.endDate}
-          today.desendTime:${this.today.desendTime}
-          this.today.isWorkDay: ${this.today.isWorkDay}
-          this.today.isWorking: ${this.today.isWorking}`);
+        // console.log(`today.endDate:${this.today.endDate}
+        //   today.desendTime:${this.today.desendTime}
+        //   this.today.isWorkDay: ${this.today.isWorkDay}
+        //   this.today.isWorking: ${this.today.isWorking}`);
 
         if (!this.today.isWorkDay || date < timeToDate(this.s.workStartTime, -1) || date > this.today.endDate || (date > new Date().setHours(12, 1, 0) && date < new Date().setHours(13, 29, 0))) {
             // 不在工作時間內 --------------------------------------------------------------------
@@ -242,57 +247,6 @@ export class SpasManager {
                 await this.calWorkPlan();
             }
 
-            // //*把所有onGoing更新時間
-            // for (const i of this.onGoingWorkItems) {
-            //     const delta = (new Date() - this._lastRunTime) / 3600000;
-            //     let p = this.platforms.get(i.platformId);
-            //     p.consumeHours(i.id, delta);
-            //     //console.log(`running item: ${i.id}(${toPercent(i.ratio)} / ${toPercent(p.maxRatio)})|platform todayTargetHours - ${p.todayTargetHours.toFixed(3)} `);
-
-            //     //當日targetHours用完就暫停該item
-            //     if (p.todayTargetHours <= 0 || i.ratio >= 0.99) {
-            //         //console.log(`jobRunner: pasue workitem due to p.todayTargetHours:${p.todayTargetHours} | i.ratio:${i.ratio}`);
-            //         if (await i.pause()) {
-            //             console.log(`job pause done (${p.name})`);
-            //             updateWorkItem = true;
-            //         }
-            //     } else if (i.ratio > i.maxRatio) {
-            //         // 要停嗎? 考慮萬一沒有工作了必須超過?
-            //     }
-            // }
-
-            // //*如果沒有onGoing, start一個新item
-            // if (this.onGoingWorkItems.length == 0) {
-            //     console.log('no running workitem.. start a new one...');
-            //     let sortedPlt = [...this.platforms.values()].sort((a, b) => a.todayTargetHours - b.todayTargetHours); //按照todayTargetHours小到大排序, 先跑小的porject
-
-            //     sortedPlt.forEach(p => {
-            //         console.log(`Sorted Plan: ${p.id} - ${p.todayTargetHours}`);
-            //     });
-
-            //     for (const p of sortedPlt) {
-            //         if (p.todayTargetHours > 0 && p.status == 2) {
-            //             let item = await p.start(); //return item or null
-            //             if (item) {
-            //                 console.log(`job start done (${p.name})`);
-            //                 updateWorkItem = true;
-
-            //                 // 啟動 simultaneousGroup內的專案
-            //                 p.simultaneousGroup.forEach(gName => {
-            //                     this.platforms.forEach(plt => {
-            //                         if (plt.simultaneousGroup.includes(gName) && plt.status == 2) {
-            //                             console.log(`start simultaneousGroup ${gName}-(${plt.id})${plt.name}`);
-            //                             plt.start(item.name);
-            //                         }
-            //                     });
-            //                 });
-
-            //                 break; //[ToDo] 一個platform只開始一個workItem...?
-            //             }
-            //         }
-            //     }
-            // }
-
             // [SPAS3.0]
             // *把所有onGoing更新時間
             for (const i of this.onGoingWorkItems3) {
@@ -313,7 +267,7 @@ export class SpasManager {
                     console.log(`ERROR!! this.workItems中找不到符合條件的物件 id=${i.id}`);
                 }
             }
-            console.log(`目前有 ${this.onGoingWorkItems3.length} 個工作項同時進行`);
+            //console.log(`目前有 ${this.onGoingWorkItems3.length} 個工作項同時進行`);
             //* 一次僅進行一個工作，停止多餘的
             if (this.onGoingWorkItems3.length > 1) {
                 console.log(`目前有 ${this.onGoingWorkItems3.length} 個工作項同時進行,開始暫停多餘項目`);
@@ -892,7 +846,7 @@ class spasWorkItem {
             this.status = 1; // status=1 running
             rtn = true;
         }
-        console.log(`(${this.id})${this.name} started : ${res.code} | ${res.msg}`);
+        console.log(`%c ${this.id} %c ${this.name} started : ${res.code} | ${res.msg}`, 'padding: 2px 1px; border-radius: 3px 0 0 3px; color: #fff; background: #606060; font-weight: bold;','padding: 2px 1px; border-radius: 0 3px 3px 0; color: #fff; background: #42c02e; font-weight: bold;');
         return rtn;
     }
 
@@ -906,7 +860,7 @@ class spasWorkItem {
             this.status = 2; // status=2 paused
             rtn = true;
         }
-        console.log(`(${this.id})${this.name} pasued : ${res.code} | ${res.msg}`);
+        console.log(`%c ${this.id} %c ${this.name} pasued : ${res.code} | ${res.msg}`,'padding: 2px 1px; border-radius: 3px 0 0 3px; color: #fff; background: #606060; font-weight: bold;','padding: 2px 1px; border-radius: 0 3px 3px 0; color: #fff; background: #42c02e; font-weight: bold;');
         return rtn;
     }
 
