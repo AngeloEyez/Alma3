@@ -182,7 +182,7 @@ export class SpasManager {
         // 特定時間執行 1 --------------------------------------------------------------------
         let scheduleTime1 = ['08:00', '10:00', '12:03', '13:30', '13:32', '15:00', '17:30', '18:30', '20:00', '22:00'];
         if (scheduleTime1.includes(date.myGetTime())) {
-            console.log(`%c schedule1: refresh workItem.`,'padding: 2px 1px; border-radius: 3px 0 0 3px; color: #fff; background: #606060; font-weight: bold;');
+            console.log(`%c schedule1: refresh workItem.`, 'padding: 2px 1px; border-radius: 3px 0 0 3px; color: #fff; background: #606060; font-weight: bold;');
             await this.getWorkItemsFromSpas();
             this.calWorkPlan();
         }
@@ -197,7 +197,7 @@ export class SpasManager {
         // 特定時間執行 3 A new Day --------------------------------------------------------------------
         // Start a new Day, 提早1分鐘提早1分鐘
         if (addMinutes(this.s.workStartTime, -1) == date.myGetTime()) {
-            console.log(`%c Start a new Day...`,'padding: 2px 1px; border-radius: 3px 0 0 3px; color: #fff; background: #606060; font-weight: bold;');
+            console.log(`%c Start a new Day...`, 'padding: 2px 1px; border-radius: 3px 0 0 3px; color: #fff; background: #606060; font-weight: bold;');
             this.today.desendTime = '';
             this.today.clockInTime = '';
             this.today.startTime = '';
@@ -235,7 +235,7 @@ export class SpasManager {
 
             //今日開始工作時，紀錄開工時間紀錄開工時間
             if (!this.today.isWorking) {
-                console.log(`%c 今日開工...  `,'padding: 2px 1px; border-radius: 3px 0 0 3px; color: #fff; background: #606060; font-weight: bold;');
+                console.log(`%c 今日開工...  `, 'padding: 2px 1px; border-radius: 3px 0 0 3px; color: #fff; background: #606060; font-weight: bold;');
                 this.today.startTime = date.myGetTime();
                 await this.getWorkItemsFromSpas();
                 await this.calWorkPlan();
@@ -845,7 +845,7 @@ class spasWorkItem {
             this.status = 1; // status=1 running
             rtn = true;
         }
-        console.log(`%c ${this.id} %c ${this.name} started : ${res.code} | ${res.msg}`, 'padding: 2px 1px; border-radius: 3px 0 0 3px; color: #fff; background: #606060; font-weight: bold;', 'padding: 2px 1px; border-radius: 0 3px 3px 0; color: #fff; background: #42c02e; font-weight: bold;');
+        console.log(`%c ${this.id} %c started : ${res.code} | ${res.msg}`, 'padding: 2px 1px; border-radius: 3px 0 0 3px; color: #fff; background: #606060; font-weight: bold;', 'padding: 2px 1px; border-radius: 0 3px 3px 0; color: #fff; background: #42c02e; font-weight: bold;');
         return rtn;
     }
 
@@ -859,7 +859,7 @@ class spasWorkItem {
             this.status = 2; // status=2 paused
             rtn = true;
         }
-        console.log(`%c ${this.id} %c ${this.name} pasued : ${res.code} | ${res.msg}`, 'padding: 2px 1px; border-radius: 3px 0 0 3px; color: #fff; background: #606060; font-weight: bold;', 'padding: 2px 1px; border-radius: 0 3px 3px 0; color: #fff; background: #42c02e; font-weight: bold;');
+        console.log(`%c ${this.id} %c pasued : ${res.code} | ${res.msg}`, 'padding: 2px 1px; border-radius: 3px 0 0 3px; color: #fff; background: #606060; font-weight: bold;', 'padding: 2px 1px; border-radius: 0 3px 3px 0; color: #fff; background: #42c02e; font-weight: bold;');
         return rtn;
     }
 
