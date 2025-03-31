@@ -1,6 +1,6 @@
 <template>
     <q-card flat bordered>
-        <q-card-section class="bg-light-blue-8 text-white q-py-xs">
+        <q-card-section class="text-white q-py-xs bg-primary">
             <div class="row q-gutter-y-xs">
                 <!-- 第一列 -->
                 <div class="col-12 row items-center q-gutter-x-xs">
@@ -21,7 +21,7 @@
                         <spas-work-day-picker />
                     </div>
                     <div class="col text-caption text-right">
-                        <q-icon name="favorite" size="xs" class="q-mr-xs" />
+                        <q-icon :name="(new Date() - new Date(sm._lastRunTime)) > 90000 ? 'heart_broken' : 'favorite'" size="xs" class="q-mr-xs" :color="(new Date() - new Date(sm._lastRunTime)) > 90000 ? 'negative' : 'positive'" />
                         {{ sm._lastRunTime ? new Date(sm._lastRunTime).Format('hh:mm:ss') : '--:--' }}
                     </div>
                 </div>

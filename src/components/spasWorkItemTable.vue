@@ -11,7 +11,7 @@
             >
                 <q-td v-for="col in props.cols" :key="col.name" :props="props">
                     <template v-if="col.name === 'status'">
-                        <q-icon size="xs" v-if="col.value === 1" name="play_arrow" color="green" />
+                        <q-icon size="xs" v-if="col.value === 1" name="play_arrow" color="positive" />
                         <q-icon size="xs" v-else-if="col.value === 2" name="pause" color="grey" />
                         <template v-else>{{ col.value }}</template>
                     </template>
@@ -58,7 +58,7 @@ const initialPagination = {
   //background-color: $blue-grey-2
 
 .spasOnGoing
-  background-color: $cyan-2
+  background-color: $secondary
 
 .spasOutOfDate
   color: $pink-13

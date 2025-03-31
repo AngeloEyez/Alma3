@@ -1,6 +1,6 @@
 <template>
     <div>
-        <q-btn flat  size="sm" icon="event" @click="openPicker" />
+        <q-btn flat size="sm" icon="event" @click="openPicker" color="info"/>
 
         <q-dialog v-model="isPickerOpen" @hide="saveDateSettings">
             <q-card style="min-width: 330px">
