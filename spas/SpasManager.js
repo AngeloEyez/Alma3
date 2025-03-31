@@ -173,7 +173,7 @@ export class SpasManager {
         // 特定時間執行 0 -------------------------------------------------------------------- [TODO:改成每日下班後10分鐘]
         let scheduleTime0 = ['23:05'];
         if (scheduleTime0.includes(date.myGetTime())) {
-            console.log('schedule0: Check FINISH and APPROVE');
+            console.log(`%c schedule0: Check FINISH and APPROVE`, 'padding: 2px 1px; border-radius: 3px 0 0 3px; color: #fff; background: #606060; font-weight: bold;');
             await this.getWorkItemsFromSpas();
             await this.finishItems();
             this.approveItems();
@@ -182,7 +182,7 @@ export class SpasManager {
         // 特定時間執行 1 --------------------------------------------------------------------
         let scheduleTime1 = ['08:00', '10:00', '12:03', '13:30', '13:32', '15:00', '17:30', '18:30', '20:00', '22:00'];
         if (scheduleTime1.includes(date.myGetTime())) {
-            console.log('schedule1: refresh workItem.');
+            console.log(`%c schedule1: refresh workItem.`,'padding: 2px 1px; border-radius: 3px 0 0 3px; color: #fff; background: #606060; font-weight: bold;');
             await this.getWorkItemsFromSpas();
             this.calWorkPlan();
         }
@@ -197,7 +197,7 @@ export class SpasManager {
         // 特定時間執行 3 A new Day --------------------------------------------------------------------
         // Start a new Day, 提早1分鐘提早1分鐘
         if (addMinutes(this.s.workStartTime, -1) == date.myGetTime()) {
-            console.log('Start a new Day...');
+            console.log(`%c Start a new Day...`,'padding: 2px 1px; border-radius: 3px 0 0 3px; color: #fff; background: #606060; font-weight: bold;');
             this.today.desendTime = '';
             this.today.clockInTime = '';
             this.today.startTime = '';
@@ -235,7 +235,7 @@ export class SpasManager {
 
             //今日開始工作時，紀錄開工時間紀錄開工時間
             if (!this.today.isWorking) {
-                console.log('今日開工...  ');
+                console.log(`%c 今日開工...  `,'padding: 2px 1px; border-radius: 3px 0 0 3px; color: #fff; background: #606060; font-weight: bold;');
                 this.today.startTime = date.myGetTime();
                 await this.getWorkItemsFromSpas();
                 await this.calWorkPlan();
