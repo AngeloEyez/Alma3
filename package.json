@@ -14,9 +14,13 @@
     },
     "dependencies": {
         "@quasar/extras": "^1.16.4",
+        "@tesseract.js-data/eng": "^1.0.0",
         "axios": "^1.2.1",
         "electron-store": "^8.1.0",
+        "jimp": "^1.6.0",
         "quasar": "^2.6.0",
+        "sharp": "^0.33.5",
+        "tesseract.js": "^6.0.0",
         "vue": "^3.0.0",
         "vue-router": "^4.0.0"
     },

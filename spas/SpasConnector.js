@@ -7,6 +7,7 @@ import { delay } from './utils.js';
 import { SpasConfig } from './spasConfig.js';
 import { Settings } from './settings.js';
 import { BrowserWindow } from 'electron';
+import { recognizeCaptcha } from './captcha-recognizer.js';
 
 class SpasConnector {
     constructor() {
@@ -82,16 +83,29 @@ class SpasConnector {
                 break;
             }
             case 'getKaptchaImg': {
-                let res = await axios(config);
-                let captchaImg = Buffer.from(res.data, 'binary').toString('base64');
-                let verifyCode = '';
+                let res, captchaImg, verifyCode;
+                // 取得 captcha 影像並辨識，如果失敗就重複5次如果失敗就重複5次
+                for (let i = 0; i < 5; i++) {
+                    res = await axios(config);
+                    captchaImg = Buffer.from(res.data, 'binary').toString('base64');
+                    verifyCode = await recognizeCaptcha(captchaImg);
+                    console.log('    CAPTCHA result:', verifyCode);
+
+                    if (verifyCode.length === 4) {
+                        break;
+                    } else {
+                        console.log('    CAPTCHA not good, retry in 3 seconds...');
+                        await new Promise(resolve => setTimeout(resolve, 3000)); // 延遲3秒
+                    }
+                }
+
                 result = { img: captchaImg, verifyCode: verifyCode };
 
                 let setCookie = res.headers['set-cookie'].toString();
                 let start = setCookie.indexOf('SESSION=');
                 let end = setCookie.indexOf(';', start);
                 this.session = setCookie.substring(start, end);
-                console.log(this.session);
+                console.log(`    ${this.session}`);
                 //console.log(res.request._header);
                 break;
             }
