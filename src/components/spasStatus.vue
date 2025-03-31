@@ -56,6 +56,7 @@
                     <q-btn color="grey-7" label="test" dense no-caps @click="test" />
                     <q-btn color="grey-7" label="getWorkItemsFromSpas" dense no-caps @click="sm.getWorkItemsFromSpas()" />
                     <q-btn color="grey-7" label="calWorkPlanByWorkItem" dense no-caps @click="sm.calWorkPlanByWorkItem(4)" />
+                    <q-btn color="grey-7" label="jobRunner" dense no-caps @click="sm.jobRunner()" />
                     <q-btn color="grey-7" label="approveItems" dense no-caps @click="sm.approveItems" />
                     <q-btn color="grey-7" label="finishItems" dense no-caps @click="sm.finishItems" />
                 </div>

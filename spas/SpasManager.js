@@ -483,7 +483,14 @@ export class SpasManager {
             i.priorityScore = i.priorityScore - ratioScore - dateScore;
 
             minScore = minScore < i.priorityScore ? minScore : i.priorityScore;
+
         });
+
+        // 特殊處理 this.workItems 長度為 1的狀況, 那把 minScore 再扣掉 1
+        if (this.workItems.length === 1) {
+            minScore -= 1;
+        }
+
 
         this.workItems.forEach(i => {
             // 將 priorityScore shift到正數 (minScore為最小的score, 負數)
@@ -494,7 +501,9 @@ export class SpasManager {
 
             // 已達this.workItemMaxRatio的工作項 priorityScore歸零
             if (i.ratio >= this.workItemMaxRatio) i.priorityScore = 0;
+
         });
+
 
         // 根據priorityScore對工作項目進行排序 (priorityScore大的在前面)
         this.workItems.sort((a, b) => b.priorityScore - a.priorityScore);
