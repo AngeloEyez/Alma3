@@ -85,7 +85,7 @@ class SpasConnector {
             case 'getKaptchaImg': {
                 let res, captchaImg, verifyCode;
                 // 取得 captcha 影像並辨識，如果失敗就重複5次如果失敗就重複10次
-                for (let i = 0; i < 3; i++) {
+                for (let i = 0; i < 50; i++) {
                     try {
                         res = await axios(config);
 
