@@ -50,7 +50,7 @@ class SpasConnector {
         console.log(`spasConnector initing...workId=${this.signIn.workId} | password=${this.signIn.password} | token=${this.token}`);
         if (this.signIn.workId == '' || this.token == '') {
             this.send('needSignIn');
-            console.log('needSignIn');
+            console.log('needSignIn in UI...');
             result = false; // need sign in
         } else {
             this.send('start');
@@ -84,19 +84,21 @@ class SpasConnector {
             }
             case 'getKaptchaImg': {
                 let res, captchaImg, verifyCode;
-                // 取得 captcha 影像並辨識，如果失敗就重複5次如果失敗就重複5次
-                for (let i = 0; i < 5; i++) {
-                    res = await axios(config);
-                    captchaImg = Buffer.from(res.data, 'binary').toString('base64');
-                    verifyCode = await recognizeCaptcha(captchaImg);
-                    console.log('    CAPTCHA result:', verifyCode);
+                // 取得 captcha 影像並辨識，如果失敗就重複5次如果失敗就重複10次
+                for (let i = 0; i < 3; i++) {
+                    try {
+                        res = await axios(config);
 
-                    if (verifyCode.length === 4) {
-                        break;
-                    } else {
-                        console.log('    CAPTCHA not good, retry in 3 seconds...');
-                        await new Promise(resolve => setTimeout(resolve, 3000)); // 延遲3秒
-                    }
+                        captchaImg = Buffer.from(res.data, 'binary').toString('base64');
+                        verifyCode = await recognizeCaptcha(captchaImg);
+                        console.log('    CAPTCHA result:', verifyCode);
+
+                        if (verifyCode.length === 4) {
+                            break;
+                        }
+                        console.log('    Get new CAPTCHA in 3 seconds...');
+                        await new Promise(resolve => setTimeout(resolve, 3211)); // 延遲3秒
+                    } catch (e) {}
                 }
 
                 result = { img: captchaImg, verifyCode: verifyCode };
@@ -106,7 +108,6 @@ class SpasConnector {
                 let end = setCookie.indexOf(';', start);
                 this.session = setCookie.substring(start, end);
                 console.log(`    ${this.session}`);
-                //console.log(res.request._header);
                 break;
             }
             case 'signIn': {

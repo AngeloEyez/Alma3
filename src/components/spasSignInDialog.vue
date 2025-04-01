@@ -6,15 +6,15 @@
             </q-card-section>
 
             <q-card-section class="q-pt-none">
-                <q-input dense label="User Id" v-model="sm.s.signIn.workId" />
+                <q-input dense label="User Id" v-model="sm.s.signIn.workId"  @focus="stopCountdown" />
             </q-card-section>
 
             <q-card-section class="q-pt-none">
-                <q-input dense label="Password" v-model="sm.s.signIn.password" />
+                <q-input dense label="Password" v-model="sm.s.signIn.password"  @focus="stopCountdown" />
             </q-card-section>
 
             <q-card-section class="q-pt-none">
-                <q-input bottom-slots v-model="sm.signInDialog.verifyCode" label="Verify Code" dense autofocus @keyup.enter="signIn" @focus="stopCountdown">
+                <q-input bottom-slots v-model="sm.signInDialog.verifyCode" label="Verify Code" dense  @keyup.enter="signIn" @focus="stopCountdown">
                     <template v-slot:after>
                         <img :src="'data:image/jpeg;base64,' + sm.signInDialog.img" @click="sm.needSignIn()" />
                     </template>
@@ -31,7 +31,7 @@
                 </div>
             </q-card-section>
 
-            <q-inner-loading :showing="sm.signInDialog.isloading" label="Please wait..." label-class="text-teal" label-style="font-size: 1.1em" />
+            <q-inner-loading :showing="sm.isloading" label="Please wait..." label-class="text-teal" label-style="font-size: 1.1em" />
         </q-card>
     </q-dialog>
 </template>
@@ -58,10 +58,9 @@ watch(
     ([showDialog, verifyCode, workId, password]) => {
         // 清除現有的計時器
         stopCountdown();
-
         // 當對話框顯示且驗證碼長度為4時，且用戶名和密碼不為空時，開始倒計時
-        if (showDialog && verifyCode && verifyCode.length === 4 && workId && workId.length > 0 && password && password.length > 0) {
-            countdown.value = 5;
+        if (showDialog && verifyCode && verifyCode.length === 4 && workId && workId.length > 3 && password && password.length > 2) {
+            countdown.value = 10;
 
             timer = setInterval(() => {
                 countdown.value--;
@@ -70,6 +69,7 @@ watch(
                 if (countdown.value <= 0) {
                     clearInterval(timer);
                     timer = null;
+                    console.log(`%c Auto SigIn...`, 'padding: 2px 1px; border-radius: 3px 0 0 3px; color: #fff; background: #606060; font-weight: bold;');
                     signIn();
                 }
             }, 1000);

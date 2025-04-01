@@ -165,7 +165,7 @@ module.exports = configure(function (/* ctx */) {
         // Full list of options: https://v2.quasar.dev/quasar-cli/developing-electron-apps/configuring-electron
         electron: {
             // extendElectronMainConf (esbuildConf)
-            
+
             // extendElectronPreloadConf (esbuildConf)
 
             // specify the debugging port to use for the Electron app when running in development mode
@@ -207,7 +207,14 @@ module.exports = configure(function (/* ctx */) {
                     createDesktopShortcut: true,
                     createStartMenuShortcut: true,
                     shortcutName: 'Alma3' // 替換為你的應用程式名稱
-                }
+                },
+                // 添加 extraResources 將語言檔案嵌入
+                extraResources: [
+                    {
+                        from: 'node_modules/@tesseract.js-data/eng/4.0.0/', //注意路徑後面的 / 表示複製該目錄下的所有內容。
+                        to: 'tesseract-data'
+                    }
+                ]
             }
         },
 

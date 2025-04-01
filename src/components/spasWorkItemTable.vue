@@ -25,6 +25,7 @@
             </q-tr>
         </template>
     </q-table>
+    <q-inner-loading :showing="sm.isloading" label="Please wait..." label-class="text-teal" label-style="font-size: 1.1em" />
 </template>
 
 <script setup>

@@ -16,6 +16,8 @@ export class SpasManager {
         this.jobRunnerID = null;
         this.timerID = {};
 
+        this.isloading = false;
+
         // 開發模式視圖控制變數，根據環境預設值
         this.devModeView = process.env.NODE_ENV !== 'production';
 
@@ -32,7 +34,6 @@ export class SpasManager {
             img: '',
             verifyCode: '',
             msg: '',
-            isloading: false,
             showDialog: false
         };
 
@@ -678,17 +679,18 @@ export class SpasManager {
     }
 
     async needSignIn() {
-        this.stop();
+        this.isloading = true;
+        //this.stop();
         let res = await SPAS.do('getKaptchaImg');
         this.signInDialog.img = res.img;
         this.signInDialog.verifyCode = res.verifyCode;
-        this.signInDialog.isloading = false;
+        this.isloading = false;
         this.signInDialog.showDialog = true;
     }
 
     async signIn() {
         console.log('SpasManager.singIn called');
-        this.signInDialog.isloading = true;
+        this.isloading = true;
         this.signInDialog.msg = '';
         let data = { workId: this.s.signIn.workId, password: this.s.signIn.password, verifyCode: this.signInDialog.verifyCode };
         let res = await SPAS.do('signIn', data);
@@ -697,6 +699,7 @@ export class SpasManager {
             // signIn success
             this.signInDialog.showDialog = false;
             this.start();
+            this.isloading = false;
         } else {
             // signIn fail
             this.signInDialog.msg = res.msg;

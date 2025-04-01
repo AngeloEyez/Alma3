@@ -169,13 +169,12 @@ async function saveSettings() {
 
     // 如果帳號或密碼變更，重新登入以獲取新 token
     if (isCredentialsChanged) {
-        // 清除舊的 token
-        await SPAS.set('token', '');
-        sm.s.token = '';
+        // // 清除舊的 token
+        // await SPAS.set('token', '');
+        // sm.s.token = '';
 
         // 重新登入
         await SPAS.do('logOut');
-        SPAS.do('signIn');
     }
 }
 </script>
