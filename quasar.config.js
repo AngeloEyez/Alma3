@@ -186,14 +186,14 @@ module.exports = configure(function (/* ctx */) {
 
             builder: {
                 // https://www.electron.build/configuration/configuration
-                productName: 'Alma3',
-                appId: 'alma3',
+                productName: 'Alma',
+                appId: 'alma3.angeleyes',
                 win: {
                     target: [
-                        {
-                            target: 'portable', // "nsis" or "portable" 使用 NSIS 來打包為單個 exe 安裝檔案 , 或是使用 portable
-                            arch: ['x64'] // 指定支援的架構
-                        },
+                        // {
+                        //     target: 'portable', // "nsis" or "portable" 使用 NSIS 來打包為單個 exe 安裝檔案 , 或是使用 portable
+                        //     arch: ['x64'] // 指定支援的架構
+                        // },
                         {
                             target: '7z', // "nsis" or "portable" 使用 NSIS 來打包為單個 exe 安裝檔案 , 或是使用 portable
                             arch: ['x64'] // 指定支援的架構
