@@ -1,7 +1,7 @@
 // captcha-recognizer.js
 import { createWorker } from 'tesseract.js';
 import sharp from 'sharp';
-const { join, dirname } = require('path');
+const { join} = require('path');
 import { app } from 'electron';
 
 // const fs = require('fs').promises;
@@ -16,7 +16,8 @@ export async function recognizeCaptcha(captchaBase64) {
 
         const isDev = process.env.NODE_ENV === 'development';
         const langPath = isDev ? join(__dirname, '../../node_modules/@tesseract.js-data/eng/4.0.0') : join(app.getAppPath(), '../tesseract-data');
-        //await fs.appendFile(logFile, `langPath:${langPath}` + '\n\n');
+        // 如果打包為 portable, 藥用 ../tesseract-data. 其他可用 tesseract-data
+        //await fs.appendFile(logFile, `langPath:${langPath}\n ${join(__dirname, '../../node_modules/@tesseract.js-data/eng/4.0.0')}` + '\n\n');
 
         // 建立 worker 實例（每次識別創建新的 worker，避免狀態問題）
         const worker = await createWorker('eng', 1, {

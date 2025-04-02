@@ -1,23 +1,19 @@
 import Store from 'electron-store';
-// 避免在 renderer 進程中直接導入 app
-let app;
-try {
-    const electron = require('electron');
-    app = electron.app || (electron.remote && electron.remote.app);
-} catch (e) {
-    // 忽略錯誤
-}
+import path from 'path';
 
 // 使用更簡單的方法獲取可能的儲存路徑
 const getStoragePath = () => {
     try {
-        // 針對打包後的可執行文件環境
+        // 針對portable打包後的可執行文件環境
         if (process.env.PORTABLE_EXECUTABLE_DIR) {
             return process.env.PORTABLE_EXECUTABLE_DIR;
         }
 
+        // 其他模式（包括 7z、nsis、dir 等）
+        return path.dirname(process.execPath);
+
         // 使用相對路徑，這將使配置文件存放在應用程序目錄下
-        return '.';
+        //return '.';
     } catch (e) {
         console.error('Error getting storage path:', e);
         return '.';
