@@ -1,8 +1,22 @@
-import { ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import { SpasConnector } from './SpasConnector';
-import { BrowserWindow } from 'electron';
-import { app } from 'electron';
+import { getAppPath } from './utils.js';
+import path from 'path';
 
+// ==================================================================================
+// Electron-Log Setup  (https://github.com/megahertz/electron-log)
+//
+import log from 'electron-log/main';
+log.initialize(); // Optional, initialize the logger for any renderer process
+
+log.transports.file.resolvePathFn = () => path.join(getAppPath(), 'logs/main.log'); // log file path
+//log.transports.file.level = false;  // log file disabled
+
+Object.assign(console, log.functions); // Overriding console
+
+// ==================================================================================
+// Spas Connector
+//
 const sc = new SpasConnector();
 
 ipcMain.handle('spas/do', async (event, message) => {
