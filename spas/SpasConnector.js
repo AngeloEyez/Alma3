@@ -37,7 +37,7 @@ class SpasConnector {
         this.win = mw;
     }
     send(msg) {
-        console.log('sc.send', msg);
+        console.log('spasConnector.send:', msg);
         this.win.send('toRenderer', msg);
     }
 

@@ -128,13 +128,13 @@ app.on('activate', () => {
 });
 
 // [Alma] Print config file path
-console.log(`Default userData path: ${app.getPath('userData')}`);
+//console.log(`Default userData path: ${app.getPath('userData')}`);
 
 // 採用非同步方式引入設定，避免循環依賴
 setTimeout(() => {
     try {
         const { Settings } = require('../spas/settings.js');
-        console.log(`Actual config file path: ${Settings.path}`);
+        console.log(`Config file path: ${Settings.path}`);
     } catch (e) {
         console.error('Error getting Settings path:', e);
     }
