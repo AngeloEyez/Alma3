@@ -175,6 +175,8 @@ async function saveSettings() {
 
         // 重新登入
         await SPAS.do('logOut');
+    } else {
+        sm.jobRunner();
     }
 }
 </script>
