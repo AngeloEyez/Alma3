@@ -1,7 +1,7 @@
 .DS_Store
 .thumbs.db
 node_modules
-./eng.traineddata
+eng.traineddata
 /tmp
 
 # Quasar core related directories
