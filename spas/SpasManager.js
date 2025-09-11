@@ -443,7 +443,7 @@ export class SpasManager {
     }
 
     // [SPAS3.0] plan logic
-    async calWorkPlanByWorkItem(workItemsPerDay = 4) {
+    async calWorkPlanByWorkItem(workItemsPerDay = 6) {
         // ==== 計算今日剩餘可工作時數 ===========================================================================================
         if (!this.s.workStartTime) this.s = await SPAS.getAllSettings(); // 預防動態更新時 this.s內容丟失
 

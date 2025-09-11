@@ -1,8 +1,9 @@
 <template>
     <q-bar class="q-electron-drag">
         <q-icon name="laptop_chromebook" />
-        <div>
+        <div class="non-selectable">
             ALMA - SPAS Assistant
+            <span v-if="appVersion" class="text-caption q-ml-xs"> (v{{ appVersion }}) </span>
             <template v-if="sm.s.signIn.workId">
                 - {{ sm.s.signIn.workId }}
                 <span v-if="sm.s.signIn.userName" class="text-caption q-ml-xs">({{ sm.s.signIn.userName }})</span>
@@ -24,6 +25,11 @@
 <script setup>
 import { inject, ref, onMounted, onUnmounted } from 'vue';
 import spasSettings from './spasSettings.vue';
+
+/**
+ * @type {import('vue').Ref<string>} 應用程式版本號，從 preload script 獲取
+ */
+const appVersion = ref(window.appInfo?.version || '');
 
 // 判斷是否為開發模式
 const isDevelopment = ref(process.env.NODE_ENV !== 'production');

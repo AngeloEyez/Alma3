@@ -5,6 +5,12 @@ import os from 'os';
 // [Alma]
 import sc from '../spas/spas-main.js';
 
+// 嘗試disable gpu嘗試disable gpu
+// app.commandLine.appendSwitch('disable-gpu');
+// console.log(`disable-gpu: ${process.env.DISABLE_GPU}`);
+// console.log(`disable-gpu: ${app.commandLine.hasSwitch('disable-gpu')}`);
+// console.log(`no-sandbox: ${app.commandLine.hasSwitch('no-sandbox')}`);
+
 // needed in case process is undefined under Linux
 const platform = process.platform || os.platform();
 

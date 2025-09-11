@@ -1,6 +1,6 @@
 {
     "name": "alma",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "description": "Alma for SPAS 3",
     "productName": "Alma",
     "author": "AngeloEyez <gavenhuang@gmail.com>",
@@ -28,7 +28,7 @@
     "devDependencies": {
         "@quasar/app-vite": "^1.3.0",
         "autoprefixer": "^10.4.2",
-        "electron": "^26.2.2",
+        "electron": "^35.2.1",
         "electron-builder": "^24.13.3",
         "electron-packager": "^17.1.2",
         "eslint": "^8.10.0",

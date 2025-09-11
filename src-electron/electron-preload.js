@@ -28,5 +28,15 @@
  * }
  */
 
+import { contextBridge } from 'electron';
+import { version } from '../package.json';
+
+/**
+ * @description 使用 contextBridge 將應用程式資訊 (如版本號) 安全地暴露給渲染行程
+ */
+contextBridge.exposeInMainWorld('appInfo', {
+    version: version
+});
+
 // [Alma]
 import '../spas/spas-preload.js';
