@@ -498,15 +498,17 @@ export class SpasManager {
             if (i.endTime - Date.now() < 0) i.priorityScore = 0;
 
             // 已達this.workItemMaxRatio的工作項 priorityScore歸零
-            if (i.ratio >= this.workItemMaxRatio) i.priorityScore = 0;
+            //if (i.ratio >= this.workItemMaxRatio) i.priorityScore = 0;
         });
 
         // 根據priorityScore對工作項目進行排序 (priorityScore大的在前面)
         this.workItems.sort((a, b) => b.priorityScore - a.priorityScore);
 
-        // 获取前幾個个工作项 (workItemsPerDay), 並排除 priorityScore=0 的項目
+        // 获取前幾個个工作项 (workItemsPerDay)
         if (workHoursAvalible < 0.5) workItemsPerDay = 2;
         if (workHoursAvalible < 0.2) workItemsPerDay = 1;
+
+        //排除 priorityScore=0 的項目
         const topItems = this.workItems.filter(i => i.priorityScore !== 0).slice(0, workItemsPerDay);
 
         // 计算 priorityScore 的总和
@@ -515,9 +517,14 @@ export class SpasManager {
         // ==== 分配每個工作項目的時間 ===========================================================================================
         let workHoursLeft = workHoursAvalible;
         for (const workItem of topItems) {
-            if (workItem.priorityScore <= 0) continue;
+            //if (workItem.priorityScore <= 0) continue;
             if (workHoursLeft > 0) {
-                let allocatedHours = Math.min(workHoursAvalible * (workItem.priorityScore / totalPriorityScore), workItem.pmHours - workItem.investedHours, workHoursLeft);
+                // 分配時間 = 今天可用工作時數 * (該工作項目優先分數 / 所有被選中工作項目的優先分數總和)
+                let allocatedHours = workHoursAvalible * (workItem.priorityScore / totalPriorityScore);
+
+                // 且不超過該工作項目剩餘所需時間以及今日剩餘可工作時數
+                //allocatedHours = Math.min(allocatedHours, workItem.pmHours - workItem.investedHours, workHoursLeft);
+
                 workItem.targetHours = allocatedHours;
                 workHoursLeft -= allocatedHours;
                 //console.log(`${workItem.id} ${((workItem.personalInvestedHours * 100) / workItem.pmHours).toFixed(1)}% (${(workItem.pmHours - workItem.investedHours).toFixed(2)})${workItem.endTime.Format('yyyy-MM-dd')}  ${workItem.priorityScore.toFixed(4)} ${workItem.owners.length} ${workItem.targetHours} | ${workHoursLeft}`);
